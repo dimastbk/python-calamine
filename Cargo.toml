@@ -1,0 +1,13 @@
+[package]
+name = "python-calamine"
+version = "0.0.1"
+edition = "2018"
+authors = ["Dmitriy <dimastbk@yandex.ru>"]
+
+[lib]
+name = "python_calamine"
+crate-type = ["cdylib"]
+
+[dependencies]
+calamine = "0.18.0"
+pyo3 = {version = "0.14.3", features = ["extension-module"] }
