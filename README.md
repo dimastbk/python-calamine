@@ -7,6 +7,12 @@ Python binding for beautiful Rust's library for reading excel and odf file - [ca
 * [pyo3](https://github.com/PyO3/pyo3)
 * [maturin](https://github.com/PyO3/maturin)
 
+### Installation
+Currently, whl's builds are provided only for linux.
+```
+pip install python-calamine
+```
+
 ### Example 
 ```python
 from python_calamine import get_sheet_data, get_sheet_names
