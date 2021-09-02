@@ -1,0 +1,7 @@
+[project]
+name = "python-calamine"
+requires-python = ">=3.7"
+
+[build-system]
+requires = ["maturin>=0.11,<0.12"]
+build-backend = "maturin"
