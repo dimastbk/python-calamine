@@ -2,6 +2,7 @@
 name = "python-calamine"
 version = "0.0.1"
 authors = ["Dmitriy <dimastbk@yandex.ru>"]
+description = "Python binding for Rust's library for reading excel and odf file - calamine"
 edition = "2018"
 homepage = "https://github.com/dimastbk/python-calamine"
 license = "MIT"
