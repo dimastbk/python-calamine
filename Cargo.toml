@@ -15,5 +15,11 @@ crate-type = ["cdylib"]
 
 [dependencies]
 calamine = {version = "0.18.0", features = ["dates"] }
-pyo3 = {version = "0.14.5", features = ["extension-module"] }
+pyo3 = {version = "0.14.5", features = ["extension-module"] } 
 chrono = { version = "0.4.17", features = ["serde"] }
+
+[build-dependencies]
+pyo3-build-config = "^0.14"
+
+[package.metadata.maturin]
+python-source = "python"
