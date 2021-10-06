@@ -12,9 +12,7 @@ create_exception!(python_calamine, CalamineError, PyException);
 
 fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Error> {
     let mut excel: Sheets = open_workbook_auto(path)?;
-    let range = excel
-        .worksheet_range_at(sheet)
-        .expect("Нет ни одного листа")?;
+    let range = excel.worksheet_range_at(sheet).unwrap()?;
     let mut result: Vec<Vec<CellValue>> = Vec::new();
     for row in range.rows() {
         let mut result_row: Vec<CellValue> = Vec::new();
@@ -23,10 +21,18 @@ fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Erro
                 DataType::Int(v) => result_row.push(CellValue::Int(*v)),
                 DataType::Float(v) => result_row.push(CellValue::Float(*v)),
                 DataType::String(v) => result_row.push(CellValue::String(String::from(v))),
-                DataType::DateTime(v) => result_row.push(CellValue::DateTime(*v)),
+                DataType::DateTime(v) => {
+                    if *v < 1.0 {
+                        result_row.push(CellValue::Time(value.as_time().unwrap()))
+                    } else if *v == (*v as u64) as f64 {
+                        result_row.push(CellValue::Date(value.as_date().unwrap()))
+                    } else {
+                        result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                    }
+                }
                 DataType::Bool(v) => result_row.push(CellValue::Bool(*v)),
-                DataType::Error(_) => result_row.push(CellValue::None),
-                DataType::Empty => result_row.push(CellValue::None),
+                DataType::Error(_) => result_row.push(CellValue::Empty),
+                DataType::Empty => result_row.push(CellValue::Empty),
             };
         }
         result.push(result_row);

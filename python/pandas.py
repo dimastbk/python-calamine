@@ -31,7 +31,7 @@ class CalamineExcelReader(BaseExcelReader):
 
         elif isinstance(filepath_or_buffer, BytesIO):
             ext = inspect_excel_format(filepath_or_buffer)
-            with NamedTemporaryFile(suffix=f'.{ext}', delete=False) as tmp_file:
+            with NamedTemporaryFile(suffix=f".{ext}", delete=False) as tmp_file:
                 tmp_file.write(filepath_or_buffer.getvalue())
                 filepath_or_buffer = tmp_file.name
 

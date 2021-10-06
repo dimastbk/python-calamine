@@ -1,0 +1,149 @@
+on: [push, pull_request]
+
+name: Build
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+          profile: minimal
+          default: true
+      - name: Build
+        run: cargo build --release
+      - name: Build wheels - x86_64
+        uses: messense/maturin-action@v1
+        with:
+          target: x86_64
+          args: -i python --release --out dist
+      - name: Install built wheel - x86_64
+        run: |
+          pip install python-calamine --no-index --find-links dist --force-reinstall
+      - name: Build wheels - universal2
+        if: ${{ matrix.python-version != '3.7' }}
+        uses: messense/maturin-action@v1
+        with:
+          args: -i python --release --universal2 --out dist --no-sdist
+      - name: Install built wheel - universal2
+        if: ${{ matrix.python-version != '3.7' }}
+        run: |
+          pip install python-calamine --no-index --find-links dist --force-reinstall
+      - name: Python UnitTest
+        run: |
+          pip install pytest
+          pytest
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.target }}
+      - name: Update rustup
+        run: rustup self update
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build
+        if: matrix.target == 'x64'
+        run: cargo build --release
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: -i python --release --out dist --no-sdist
+      - name: Install built wheel
+        run: |
+          pip install python-calamine --no-index --find-links dist --force-reinstall
+      - name: Python UnitTest
+        run: |
+          pip install pytest
+          pytest
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        target: [x86_64, i686]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build
+        run: cargo build --release
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build Wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: -i python${{ matrix.python-version }} --release --out dist --no-sdist
+      - name: Python UnitTest
+        if: matrix.target == 'x86_64'
+        run: |
+          pip install python-calamine --no-index --find-links dist --force-reinstall
+          rm -rf python_calamine
+          pip install pytest
+          pytest
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [ macos, windows, linux ]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Publish to PyPi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install --upgrade twine
+          twine upload --skip-existing *

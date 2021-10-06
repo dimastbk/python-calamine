@@ -140,3 +140,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# IDE stuff
+.vscode
