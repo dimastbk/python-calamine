@@ -8,7 +8,6 @@ Python binding for beautiful Rust's library for reading excel and odf file - [ca
 * [maturin](https://github.com/PyO3/maturin)
 
 ### Installation
-Currently, whl's builds are provided only for linux.
 ```
 pip install python-calamine
 ```
