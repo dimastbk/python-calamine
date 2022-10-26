@@ -5,14 +5,17 @@ use pyo3::create_exception;
 use pyo3::exceptions::*;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-
 use utils::CellValue;
 
 create_exception!(python_calamine, CalamineError, PyException);
 
 fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Error> {
     let mut excel: Sheets<_> = open_workbook_auto(path)?;
-    let range = excel.worksheet_range_at(sheet).unwrap()?;
+    let readed_range = excel.worksheet_range_at(sheet);
+    let range = match readed_range {
+        Some(range) => range,
+        None => return Err(Error::Msg("Workbook is empty")),
+    }?;
     let mut result: Vec<Vec<CellValue>> = Vec::new();
     for row in range.rows() {
         let mut result_row: Vec<CellValue> = Vec::new();
@@ -23,11 +26,20 @@ fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Erro
                 DataType::String(v) => result_row.push(CellValue::String(String::from(v))),
                 DataType::DateTime(v) => {
                     if *v < 1.0 {
-                        result_row.push(CellValue::Time(value.as_time().unwrap()))
+                        result_row.push(match value.as_time() {
+                            Some(x) => CellValue::Time(x),
+                            None => CellValue::Empty,
+                        })
                     } else if *v == (*v as u64) as f64 {
-                        result_row.push(CellValue::Date(value.as_date().unwrap()))
+                        result_row.push(match value.as_date() {
+                            Some(x) => CellValue::Date(x),
+                            None => CellValue::Empty,
+                        })
                     } else {
-                        result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                        result_row.push(match value.as_datetime() {
+                            Some(x) => CellValue::DateTime(x),
+                            None => CellValue::Empty,
+                        })
                     }
                 }
                 DataType::Bool(v) => result_row.push(CellValue::Bool(*v)),
