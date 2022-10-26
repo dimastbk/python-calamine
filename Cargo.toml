@@ -14,12 +14,12 @@ name = "python_calamine"
 crate-type = ["cdylib"]
 
 [dependencies]
-calamine = {version = "0.18.0", features = ["dates"] }
-pyo3 = {version = "0.14.5", features = ["extension-module"] }
-chrono = { version = "0.4.17", features = ["serde"] }
+calamine = {version = "0.19.1", features = ["dates", "chrono"] }
+pyo3 = {version = "0.17.2", features = ["extension-module", "chrono"] }
+chrono = { version = "0.4.22", features = ["serde"] }
 
 [build-dependencies]
-pyo3-build-config = "^0.14"
+pyo3-build-config = "0.17.2"
 
 [package.metadata.maturin]
 python-source = "python"

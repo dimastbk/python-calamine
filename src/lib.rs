@@ -11,7 +11,7 @@ use utils::CellValue;
 create_exception!(python_calamine, CalamineError, PyException);
 
 fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Error> {
-    let mut excel: Sheets = open_workbook_auto(path)?;
+    let mut excel: Sheets<_> = open_workbook_auto(path)?;
     let range = excel.worksheet_range_at(sheet).unwrap()?;
     let mut result: Vec<Vec<CellValue>> = Vec::new();
     for row in range.rows() {
@@ -53,7 +53,7 @@ fn get_sheet_data(path: &str, sheet: usize) -> PyResult<Vec<Vec<CellValue>>> {
 }
 
 fn _get_sheet_names(path: &str) -> Result<Vec<String>, Error> {
-    let excel: Sheets = open_workbook_auto(path)?;
+    let excel: Sheets<_> = open_workbook_auto(path)?;
     Ok(excel.sheet_names().to_vec())
 }
 
