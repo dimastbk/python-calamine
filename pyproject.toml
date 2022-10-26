@@ -17,7 +17,7 @@ build-backend = "maturin"
 
 [tool.poetry]
 name = "python-calamine"
-version = "0.0.3"
+version = "0.0.4"
 description = ""
 authors = ["Dmitriy <dimastbk@yandex.ru>"]
 
