@@ -9,10 +9,11 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 
 [build-system]
-requires = ["maturin>=0.11,<0.12"]
+requires = ["maturin>=0.13,<0.14"]
 build-backend = "maturin"
 
 [tool.poetry]

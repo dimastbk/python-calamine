@@ -8,7 +8,7 @@ from typing import Any, Type
 from pandas.io.excel import ExcelFile
 from pandas.io.excel._base import BaseExcelReader, inspect_excel_format
 
-from .python_calamine import get_sheet_data, get_sheet_names
+from ._python_calamine import get_sheet_data, get_sheet_names
 
 
 class __calamine__:
