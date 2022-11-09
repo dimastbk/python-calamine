@@ -82,7 +82,7 @@ fn get_sheet_names(path: &str) -> PyResult<Vec<String>> {
 }
 
 #[pymodule]
-fn python_calamine(py: Python, m: &PyModule) -> PyResult<()> {
+fn _python_calamine(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_sheet_data, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_names, m)?)?;
     m.add("CalamineError", py.get_type::<CalamineError>())?;

@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -26,7 +26,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: x86_64
-          args: -i python --release --out dist
+          args: -i python --release --out dist --sdist
       - name: Install built wheel - x86_64
         run: |
           pip install python-calamine --no-index --find-links dist --force-reinstall
@@ -34,7 +34,7 @@ jobs:
         if: ${{ matrix.python-version != '3.7' }}
         uses: messense/maturin-action@v1
         with:
-          args: -i python --release --universal2 --out dist --no-sdist
+          args: -i python --release --universal2 --out dist
       - name: Install built wheel - universal2
         if: ${{ matrix.python-version != '3.7' }}
         run: |
@@ -76,7 +76,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: -i python --release --out dist --no-sdist
+          args: -i python --release --out dist
       - name: Install built wheel
         run: |
           pip install python-calamine --no-index --find-links dist --force-reinstall
@@ -114,7 +114,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: auto
-          args: -i python${{ matrix.python-version }} --release --out dist --no-sdist
+          args: -i python${{ matrix.python-version }} --release --out dist
       - name: Python UnitTest
         if: matrix.target == 'x86_64'
         run: |
