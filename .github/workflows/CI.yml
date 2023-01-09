@@ -1,0 +1,252 @@
+# some code from https://github.com/pydantic/pydantic-core/blob/d6e7890b36ef21cb28180a7f5b1479da2319012d/.github/workflows/ci.yml
+# MIT License, see author list by link
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "**"
+  pull_request: {}
+
+jobs:
+  test:
+    name: test ${{ matrix.python-version }} rust stable
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "pypy3.7"
+          - "pypy3.8"
+          - "pypy3.9"
+
+    runs-on: ubuntu-latest
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install rust stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - id: cache-rust
+        name: cache rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - id: cache-py
+        name: cache python
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: >
+            py
+            ${{ runner.os }}
+            ${{ env.pythonLocation }}
+      - run: pip install pytest
+        if: steps.cache-py.outputs.cache-hit != 'true'
+
+      - run: pip install -e .
+        env:
+          RUST_BACKTRACE: 1
+
+      - run: pip freeze
+
+      - run: pytest
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: cache rust
+        uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - uses: actions/cache@v2
+        id: cache-py
+        name: cache python
+        with:
+          path: ${{ env.pythonLocation }}
+          key: >
+            py
+            ${{ env.pythonLocation }}
+      - run: pip install black flake8 isort
+        if: steps.cache-py.outputs.cache-hit != 'true'
+
+      - run: pip install .
+        if: steps.cache-py.outputs.cache-hit != 'true'
+
+      - run: pip freeze
+
+      - run: black --check .
+      - run: flake8
+      - run: isort --check .
+
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy -- -D warnings -A incomplete_features -W clippy::dbg_macro -W clippy::print_stdout
+
+  # https://github.com/marketplace/actions/alls-green#why used for branch protection checks
+  check:
+    if: always()
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+  build:
+    name: build on ${{ matrix.platform || matrix.os }} (${{ matrix.target }} - ${{ matrix.manylinux || 'auto' }})
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        target: [x86_64, aarch64]
+        manylinux: [auto]
+        include:
+          - os: ubuntu
+            platform: linux
+          - os: windows
+            ls: dir
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+          - os: windows
+            ls: dir
+            target: i686
+            python-architecture: x86
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+          - os: macos
+            target: aarch64
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+          - os: ubuntu
+            platform: linux
+            target: i686
+          # GCC 4.8.5 in manylinux2014 container doesn't support c11 atomic
+          # we use manylinux_2_24 container for aarch64 and armv7 targets instead,
+          - os: ubuntu
+            platform: linux
+            target: aarch64
+            container: messense/manylinux_2_24-cross:aarch64
+          - os: ubuntu
+            platform: linux
+            target: armv7
+            container: messense/manylinux_2_24-cross:armv7
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+          # musllinux
+          - os: ubuntu
+            platform: linux
+            target: x86_64
+            manylinux: musllinux_1_1
+          - os: ubuntu
+            platform: linux
+            target: aarch64
+            manylinux: musllinux_1_1
+          - os: ubuntu
+            platform: linux
+            target: ppc64le
+            container: messense/manylinux_2_24-cross:ppc64le
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+          - os: ubuntu
+            platform: linux
+            target: s390x
+            container: messense/manylinux_2_24-cross:s390x
+            interpreter: 3.7 3.8 3.9 3.10 3.11
+        exclude:
+          # Windows on arm64 only supports Python 3.11+
+          - os: windows
+            target: aarch64
+
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          architecture: ${{ matrix.python-architecture || 'x64' }}
+
+      - run: pip install -U twine
+
+      - name: build sdist
+        if: ${{ matrix.os == 'ubuntu' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+          rust-toolchain: stable
+
+      - name: build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+          container: ${{ matrix.container }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.7 3.8 3.9 3.10 3.11 pypy3.7 pypy3.8 pypy3.9' }}
+          rust-toolchain: stable
+
+      - run: ${{ matrix.ls || 'ls -lh' }} dist/
+
+      - run: twine check dist/*
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+  release:
+    needs: [build, check]
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - run: pip install -U twine
+
+      - name: get dist artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+      - run: twine check dist/*
+
+      - name: upload to pypi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
