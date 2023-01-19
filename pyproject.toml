@@ -27,7 +27,7 @@ python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3"
-importlib-metadata = "<5"
+importlib-metadata = "<7"
 isort = "^5"
 black = "^22"
 maturin = "^0.13"
