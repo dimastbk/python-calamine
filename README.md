@@ -12,7 +12,7 @@ Python binding for beautiful Rust's library for reading excel and odf file - [ca
 pip install python-calamine
 ```
 
-### Example 
+### Example
 ```python
 from python_calamine import get_sheet_data, get_sheet_names
 

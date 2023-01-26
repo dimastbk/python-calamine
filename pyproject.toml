@@ -1,20 +1,28 @@
 [project]
 name = "python-calamine"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11"
 ]
 
+[tool.isort]
+include_trailing_comma = true
+line_length = 88
+multi_line_output = 3
+profile = "black"
+
 [build-system]
-requires = ["maturin>=0.13,<0.14"]
+requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
+
+[tool.maturin]
+python-source = "python"
 
 [tool.poetry]
 name = "python-calamine"
@@ -23,12 +31,9 @@ description = ""
 authors = ["Dmitriy <dimastbk@yandex.ru>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 
-[tool.poetry.dev-dependencies]
-flake8 = "^3"
-importlib-metadata = "<5"
-isort = "^5"
-black = "^22"
-maturin = "^0.13"
-pytest = "^7"
+[tool.poetry.group.dev.dependencies]
+maturin = "^0.14"
+pre-commit = "^3.0.1"
+pytest = "^7.2.1"
