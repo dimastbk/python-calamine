@@ -9,14 +9,23 @@ use utils::CellValue;
 
 create_exception!(python_calamine, CalamineError, PyException);
 
-fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Error> {
+fn _get_sheet_data(
+    path: &str,
+    sheet: usize,
+    skip_empty_area: bool,
+) -> Result<Vec<Vec<CellValue>>, Error> {
     let mut excel: Sheets<_> = open_workbook_auto(path)?;
     let readed_range = excel.worksheet_range_at(sheet);
-    let range = match readed_range {
+    let mut range = match readed_range {
         Some(range) => range,
         None => return Err(Error::Msg("Workbook is empty")),
     }?;
     let mut result: Vec<Vec<CellValue>> = Vec::new();
+    if !skip_empty_area {
+        if let Some(end) = range.end() {
+            range = range.range((0, 0), end)
+        }
+    }
     for row in range.rows() {
         let mut result_row: Vec<CellValue> = Vec::new();
         for value in row.iter() {
@@ -53,9 +62,13 @@ fn _get_sheet_data(path: &str, sheet: usize) -> Result<Vec<Vec<CellValue>>, Erro
 }
 
 #[pyfunction]
-#[pyo3(text_signature = "path: str, sheet: int")]
-fn get_sheet_data(path: &str, sheet: usize) -> PyResult<Vec<Vec<CellValue>>> {
-    match _get_sheet_data(path, sheet) {
+#[pyo3(signature = (path, sheet, skip_empty_area=true))]
+fn get_sheet_data(
+    path: &str,
+    sheet: usize,
+    skip_empty_area: bool,
+) -> PyResult<Vec<Vec<CellValue>>> {
+    match _get_sheet_data(path, sheet, skip_empty_area) {
         Ok(r) => Ok(r),
         Err(e) => match e {
             Error::Io(err) => Err(PyIOError::new_err(err.to_string())),
@@ -70,7 +83,6 @@ fn _get_sheet_names(path: &str) -> Result<Vec<String>, Error> {
 }
 
 #[pyfunction]
-#[pyo3(text_signature = "path: str")]
 fn get_sheet_names(path: &str) -> PyResult<Vec<String>> {
     match _get_sheet_names(path) {
         Ok(r) => Ok(r),
