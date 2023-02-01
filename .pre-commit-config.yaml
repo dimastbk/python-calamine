@@ -23,7 +23,7 @@ repos:
             args:
                 - --fix
     - repo: https://github.com/pycqa/isort
-      rev: 5.11.4
+      rev: 5.12.0
       hooks:
           - id: isort
             name: isort (python)
@@ -38,7 +38,7 @@ repos:
         hooks:
         -   id: rust-linting
             name: Rust linting
-            entry: cargo fmt --all --
+            entry: cargo fmt --all -- --config group_imports=StdExternalCrate,imports_granularity=Module
             pass_filenames: true
             types: [rust]
             language: system
