@@ -1,28 +1,12 @@
-use pyo3::prelude::*;
+use calamine::Error;
+use pyo3::exceptions::PyIOError;
+use pyo3::PyErr;
 
-#[derive(Debug)]
-pub enum CellValue {
-    Int(i64),
-    Float(f64),
-    String(String),
-    Time(chrono::NaiveTime),
-    Date(chrono::NaiveDate),
-    DateTime(chrono::NaiveDateTime),
-    Bool(bool),
-    Empty,
-}
+use crate::types::CalamineError;
 
-impl IntoPy<PyObject> for CellValue {
-    fn into_py(self, py: Python) -> PyObject {
-        match self {
-            CellValue::Int(v) => v.to_object(py),
-            CellValue::Float(v) => v.to_object(py),
-            CellValue::String(v) => v.to_object(py),
-            CellValue::Bool(v) => v.to_object(py),
-            CellValue::Time(v) => v.to_object(py),
-            CellValue::Date(v) => v.to_object(py),
-            CellValue::DateTime(v) => v.to_object(py),
-            CellValue::Empty => "".to_object(py),
-        }
+pub fn convert_err_to_py(e: Error) -> PyErr {
+    match e {
+        Error::Io(err) => PyIOError::new_err(err.to_string()),
+        _ => CalamineError::new_err(e.to_string()),
     }
 }
