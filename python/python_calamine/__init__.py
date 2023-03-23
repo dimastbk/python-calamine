@@ -1,7 +1,13 @@
-from ._python_calamine import (  # noqa: F401
+from ._python_calamine import (
     CalamineError,
-    CalamineReader,
     CalamineSheet,
-    get_sheet_data,
-    get_sheet_names,
+    CalamineWorkbook,
+    load_workbook,
+)
+
+__all__ = (
+    "CalamineError",
+    "CalamineSheet",
+    "CalamineWorkbook",
+    "load_workbook",
 )
