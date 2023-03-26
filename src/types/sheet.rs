@@ -22,22 +22,27 @@ impl CalamineSheet {
     fn height(&self) -> usize {
         self.range.height()
     }
+
     #[getter]
     fn width(&self) -> usize {
         self.range.height()
     }
+
     #[getter]
     fn total_height(&self) -> u32 {
         self.range.end().unwrap_or_default().0
     }
+
     #[getter]
     fn total_width(&self) -> u32 {
         self.range.end().unwrap_or_default().1
     }
+
     #[getter]
     fn start(&self) -> Option<(u32, u32)> {
         self.range.start()
     }
+
     #[getter]
     fn end(&self) -> Option<(u32, u32)> {
         self.range.end()

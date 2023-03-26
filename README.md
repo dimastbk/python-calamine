@@ -14,30 +14,30 @@ pip install python-calamine
 
 ### Example
 ```python
-from python_calamine import get_sheet_data, get_sheet_names
+from python_calamine import CalamineWorkbook
 
+workbook = CalamineWorkbook.from_path("file.xlsx")
+workbook.sheet_names
+# ["Sheet1", "Sheet2"]
 
-get_sheet_names("file.xlsx")
-# ['Sheet1', 'Sheet2']
-
-get_sheet_data("file.xlsx", "Sheet1")
+workbook.get_sheet_by_name("Sheet1").to_python()
 # [
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
 # ]
 ```
 
 By default, calamine skips empty rows/cols before data. For suppress this behaviour, set `skip_empty_area` to `False`.
 ```python
-from python_calamine import get_sheet_data
+from python_calamine import CalamineWorkbook
 
-get_sheet_data("file.xlsx", "Sheet1", skip_empty_area=False)
+workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").to_python(skip_empty_area=False)
 # [
-# ['',  '',  '',  '',  '',  '',  ''],
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
-# ['1',  '2',  '3',  '4',  '5',  '6',  '7'],
+# [",  ",  ",  ",  ",  ",  "],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
+# ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
 # ]
 ```
 
