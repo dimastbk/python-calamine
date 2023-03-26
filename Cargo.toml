@@ -15,12 +15,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 calamine = {version = "0.19.1", features = ["dates", "chrono"]}
-pyo3 = {version = "0.18.1", features = ["extension-module", "chrono"]}
+pyo3 = {version = "0.18.2", features = ["extension-module", "chrono"]}
 chrono = {version = "0.4.23", features = ["serde"]}
 pyo3-file = {git = "https://github.com/omerbenamram/pyo3-file.git", rev = "2bc4c1a00551ce1942ebf20cb4ebee4884b3aad1"}
 
 [build-dependencies]
-pyo3-build-config = "0.18.1"
-
-[package.metadata.maturin]
-name = "python_calamine._python_calamine"
+pyo3-build-config = "0.18.2"

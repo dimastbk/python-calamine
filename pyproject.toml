@@ -22,6 +22,7 @@ requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
 
 [tool.maturin]
+module-name = "python_calamine._python_calamine"
 python-source = "python"
 
 [tool.poetry]
