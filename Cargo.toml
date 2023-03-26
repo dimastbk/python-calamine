@@ -21,6 +21,3 @@ pyo3-file = {git = "https://github.com/omerbenamram/pyo3-file.git", rev = "2bc4c
 
 [build-dependencies]
 pyo3-build-config = "0.18.2"
-
-[package.metadata.maturin]
-name = "python_calamine._python_calamine"
