@@ -45,7 +45,7 @@ impl From<&DataType> for CellValue {
                     value.as_datetime().map(CellValue::DateTime)
                 }
             }
-            .unwrap_or(CellValue::Empty),
+            .unwrap_or(CellValue::Float(v.to_owned())),
             DataType::Bool(v) => CellValue::Bool(v.to_owned()),
             DataType::Error(_) => CellValue::Empty,
             DataType::Empty => CellValue::Empty,
