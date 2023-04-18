@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, time
 from io import BytesIO
 from pathlib import Path
 
@@ -12,8 +12,21 @@ def test_ods_read():
     # calamine not supported ods date/datetime parse
     names = ["Sheet1", "Sheet2"]
     data = [
-        ["", "", "", "", ""],
-        ["String", 1, 1.1, True, False],
+        ["", "", "", "", "", "", "", "", "", ""],
+        [
+            "String",
+            1.0,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            # see https://github.com/tafia/calamine/pull/288 and https://github.com/chronotope/chrono/issues/579
+            "PT255H10M10S",
+        ],
     ]
 
     reader = CalamineWorkbook.from_object(PATH / "base.ods")
@@ -22,7 +35,20 @@ def test_ods_read():
     assert data == reader.get_sheet_by_name("Sheet1").to_python(skip_empty_area=False)
 
     data_skipped = [
-        ["String", 1, 1.1, True, False],
+        [
+            "String",
+            1.0,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            # see https://github.com/tafia/calamine/pull/288 and https://github.com/chronotope/chrono/issues/579
+            "PT255H10M10S",
+        ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python()
