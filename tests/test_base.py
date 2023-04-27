@@ -9,7 +9,6 @@ PATH = Path(__file__).parent / "data"
 
 
 def test_ods_read():
-    # calamine not supported ods date/datetime parse
     names = ["Sheet1", "Sheet2"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
