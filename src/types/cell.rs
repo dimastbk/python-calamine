@@ -45,7 +45,21 @@ impl From<&DataType> for CellValue {
                     value.as_datetime().map(CellValue::DateTime)
                 }
             }
-            .unwrap_or(CellValue::Empty),
+            .unwrap_or(CellValue::Float(v.to_owned())),
+            DataType::DateTimeIso(v) => {
+                if v.contains('T') {
+                    value.as_datetime().map(CellValue::DateTime)
+                } else if v.contains(':') {
+                    value.as_time().map(CellValue::Time)
+                } else {
+                    value.as_date().map(CellValue::Date)
+                }
+            }
+            .unwrap_or(CellValue::String(v.to_owned())),
+            DataType::DurationIso(v) => value
+                .as_time()
+                .map(CellValue::Time)
+                .unwrap_or(CellValue::String(v.to_owned())),
             DataType::Bool(v) => CellValue::Bool(v.to_owned()),
             DataType::Error(_) => CellValue::Empty,
             DataType::Empty => CellValue::Empty,
