@@ -63,12 +63,12 @@ impl CalamineSheet {
         }
 
         if let Some(nrows) = nrows {
-            if self.range.end().is_some() && self.range.start().is_some() {
+            if range.end().is_some() && range.start().is_some() {
                 range = range.range(
-                    self.range.start().unwrap(),
+                    range.start().unwrap(),
                     (
-                        self.range.start().unwrap().0 + nrows,
-                        self.range.start().unwrap().1,
+                        range.start().unwrap().0 + (nrows - 1),
+                        range.end().unwrap().1,
                     ),
                 )
             }

@@ -77,7 +77,7 @@ def test_xls_read():
 
 def test_xlsx_read():
     # calamine not supported xlsx date parse
-    names = ["Sheet1", "Sheet2"]
+    names = ["Sheet1", "Sheet2", "Sheet3"]
     data = [
         ["", "", "", "", "", ""],
         ["String", 1, 1.1, True, False, date(2020, 1, 1)],
@@ -94,6 +94,21 @@ def test_xlsx_read():
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
+
+
+def test_nrows():
+    reader = CalamineWorkbook.from_object(PATH / "base.xlsx")
+    sheet = reader.get_sheet_by_name("Sheet3")
+
+    assert sheet.to_python(nrows=1) == [["line1", "line1", "line1"]]
+    assert sheet.to_python(nrows=2) == [
+        ["line1", "line1", "line1"],
+        ["line2", "line2", "line2"],
+    ]
+    assert sheet.to_python(skip_empty_area=False, nrows=2) == [
+        ["", "", "", ""],
+        ["", "line1", "line1", "line1"],
+    ]
 
 
 @pytest.mark.parametrize(
