@@ -48,14 +48,32 @@ impl CalamineSheet {
         self.range.end()
     }
 
-    #[pyo3(signature = (skip_empty_area=true))]
-    fn to_python(&self, skip_empty_area: bool) -> PyResult<Vec<Vec<CellValue>>> {
+    #[pyo3(signature = (skip_empty_area=true, nrows=None))]
+    fn to_python(
+        &self,
+        skip_empty_area: bool,
+        nrows: Option<u32>,
+    ) -> PyResult<Vec<Vec<CellValue>>> {
         let mut range = self.range.to_owned();
+
         if !skip_empty_area {
             if let Some(end) = range.end() {
                 range = range.range((0, 0), end)
             }
         }
+
+        if let Some(nrows) = nrows {
+            if self.range.end().is_some() && self.range.start().is_some() {
+                range = range.range(
+                    self.range.start().unwrap(),
+                    (
+                        self.range.start().unwrap().0 + nrows,
+                        self.range.start().unwrap().1,
+                    ),
+                )
+            }
+        }
+
         Ok(range
             .rows()
             .map(|row| row.iter().map(|x| x.into()).collect())

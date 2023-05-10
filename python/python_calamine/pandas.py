@@ -75,13 +75,13 @@ class CalamineExcelReader(BaseExcelReader):
 
             return value
 
-        rows: list[list[_ValueT]] = sheet.to_python(skip_empty_area=False)
+        rows: list[list[_ValueT]] = sheet.to_python(
+            skip_empty_area=False, nrows=file_rows_needed
+        )
         data: list[list[Scalar]] = []
 
         for row in rows:
             data.append([_convert_cell(cell) for cell in row])
-            if file_rows_needed is not None and len(data) >= file_rows_needed:
-                break
 
         return data
 

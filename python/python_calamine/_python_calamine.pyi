@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 from os import PathLike
-from typing import Protocol
+from typing import Protocol, Optional
 
 ValueT = int | float | str | bool | time | date | datetime
 
@@ -24,7 +24,9 @@ class CalamineSheet:
     def start(self) -> tuple[int, int] | None: ...
     @property
     def end(self) -> tuple[int, int] | None: ...
-    def to_python(self, skip_empty_area: bool = True) -> list[list[ValueT]]:
+    def to_python(
+        self, skip_empty_area: bool = True, nrows: Optional[int] = None
+    ) -> list[list[ValueT]]:
         """Retunrning data from sheet as list of lists.
 
         Parameters
