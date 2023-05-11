@@ -101,13 +101,21 @@ def test_nrows():
     sheet = reader.get_sheet_by_name("Sheet3")
 
     assert sheet.to_python(nrows=1) == [["line1", "line1", "line1"]]
+
     assert sheet.to_python(nrows=2) == [
         ["line1", "line1", "line1"],
         ["line2", "line2", "line2"],
     ]
+
     assert sheet.to_python(skip_empty_area=False, nrows=2) == [
         ["", "", "", ""],
         ["", "line1", "line1", "line1"],
+    ]
+
+    assert sheet.to_python() == [
+        ["line1", "line1", "line1"],
+        ["line2", "line2", "line2"],
+        ["line3", "line3", "line3"],
     ]
 
 
