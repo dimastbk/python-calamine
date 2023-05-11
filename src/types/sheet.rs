@@ -25,7 +25,7 @@ impl CalamineSheet {
 
     #[getter]
     fn width(&self) -> usize {
-        self.range.height()
+        self.range.width()
     }
 
     #[getter]
