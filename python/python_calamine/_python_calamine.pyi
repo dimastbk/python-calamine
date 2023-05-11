@@ -24,7 +24,9 @@ class CalamineSheet:
     def start(self) -> tuple[int, int] | None: ...
     @property
     def end(self) -> tuple[int, int] | None: ...
-    def to_python(self, skip_empty_area: bool = True) -> list[list[ValueT]]:
+    def to_python(
+        self, skip_empty_area: bool = True, nrows: int | None = None
+    ) -> list[list[ValueT]]:
         """Retunrning data from sheet as list of lists.
 
         Parameters
