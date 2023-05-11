@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 from os import PathLike
-from typing import Optional, Protocol
+from typing import Protocol
 
 ValueT = int | float | str | bool | time | date | datetime
 
