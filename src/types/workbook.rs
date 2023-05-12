@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Error, Reader, Sheets};
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::{PyBytes, PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
 use crate::utils::err_to_py;
@@ -40,6 +40,13 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.worksheet_range_at(index),
             SheetsEnum::FileLike(f) => f.worksheet_range_at(index),
+        }
+    }
+
+    fn pictures(&self) -> Option<Vec<(String, Vec<u8>)>> {
+        match self {
+            SheetsEnum::File(f) => f.pictures(),
+            SheetsEnum::FileLike(f) => f.pictures(),
         }
     }
 }
@@ -92,6 +99,15 @@ impl CalamineWorkbook {
             .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
             .map_err(err_to_py)?;
         Ok(CalamineSheet::new(name, range))
+    }
+
+    fn pictures<'a>(&self, py: Python<'a>) -> PyResult<Option<Vec<(String, &'a PyBytes)>>> {
+        Ok(self.sheets.pictures().map(|pictures| {
+            pictures
+                .into_iter()
+                .map(|(format, bytes)| (format, PyBytes::new(py, &bytes)))
+                .collect()
+        }))
     }
 }
 
