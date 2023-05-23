@@ -55,11 +55,22 @@ def test_ods_read():
 
 
 def test_xls_read():
-    # calamine not supported xls date/datetime parse
     names = ["Sheet1", "Sheet2"]
     data = [
-        ["", "", "", "", ""],
-        ["String", 1, 1.1, True, False],
+        ["", "", "", "", "", "", "", "", "", ""],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
     ]
 
     reader = CalamineWorkbook.from_object(PATH / "base.xls")
@@ -68,7 +79,63 @@ def test_xls_read():
     assert data == reader.get_sheet_by_index(0).to_python(skip_empty_area=False)
 
     data_skipped = [
-        ["String", 1, 1.1, True, False],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
+    ]
+    assert data_skipped == reader.get_sheet_by_index(0).to_python()
+    assert [] == reader.get_sheet_by_index(1).to_python()
+    assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
+
+
+def test_xlsb_read():
+    names = ["Sheet1", "Sheet2", "Sheet3"]
+    data = [
+        ["", "", "", "", "", "", "", "", "", ""],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
+    ]
+
+    reader = CalamineWorkbook.from_object(PATH / "base.xlsb")
+
+    assert names == reader.sheet_names
+    assert data == reader.get_sheet_by_index(0).to_python(skip_empty_area=False)
+
+    data_skipped = [
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python()
@@ -76,11 +143,22 @@ def test_xls_read():
 
 
 def test_xlsx_read():
-    # calamine not supported xlsx date parse
     names = ["Sheet1", "Sheet2", "Sheet3"]
     data = [
-        ["", "", "", "", "", ""],
-        ["String", 1, 1.1, True, False, date(2020, 1, 1)],
+        ["", "", "", "", "", "", "", "", "", ""],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
     ]
 
     reader = CalamineWorkbook.from_object(PATH / "base.xlsx")
@@ -89,7 +167,19 @@ def test_xlsx_read():
     assert data == reader.get_sheet_by_index(0).to_python(skip_empty_area=False)
 
     data_skipped = [
-        ["String", 1, 1.1, True, False, date(2020, 1, 1)],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            time(10, 10, 10, 100000),
+            # duration (255:10:10) isn't supported
+            datetime(1900, 1, 9, 15, 10, 10),
+        ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python()
