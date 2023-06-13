@@ -27,7 +27,7 @@ python-source = "python"
 
 [tool.poetry]
 name = "python-calamine"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["Dmitriy <dimastbk@yandex.ru>"]
 
