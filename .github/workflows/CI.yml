@@ -22,8 +22,10 @@ jobs:
         - '3.9'
         - '3.10'
         - '3.11'
+        - '3.12'
         - pypy3.8
         - pypy3.9
+        - pypy3.10
 
     runs-on: ubuntu-latest
 
@@ -48,6 +50,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
 
     - id: cache-py
       name: cache python
@@ -138,7 +141,7 @@ jobs:
           interpreter: 3.8 3.9 3.10 3.11
         - os: macos
           target: aarch64
-          interpreter: 3.8 3.9 3.10 3.11
+          interpreter: 3.8 3.9 3.10 3.11 3.12
         - os: ubuntu
           platform: linux
           target: i686
@@ -152,7 +155,7 @@ jobs:
           platform: linux
           target: armv7
           container: messense/manylinux_2_24-cross:armv7
-          interpreter: 3.8 3.9 3.10 3.11
+          interpreter: 3.8 3.9 3.10 3.11 3.12
           # musllinux
         - os: ubuntu
           platform: linux
@@ -166,12 +169,12 @@ jobs:
           platform: linux
           target: ppc64le
           container: messense/manylinux_2_24-cross:ppc64le
-          interpreter: 3.8 3.9 3.10 3.11
+          interpreter: 3.8 3.9 3.10 3.11 3.12
         - os: ubuntu
           platform: linux
           target: s390x
           container: messense/manylinux_2_24-cross:s390x
-          interpreter: 3.8 3.9 3.10 3.11
+          interpreter: 3.8 3.9 3.10 3.11 3.12
         exclude:
           # Windows on arm64 only supports Python 3.11+
         - os: windows
@@ -203,7 +206,7 @@ jobs:
         target: ${{ matrix.target }}
         manylinux: ${{ matrix.manylinux || 'auto' }}
         container: ${{ matrix.container }}
-        args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 pypy3.8 pypy3.9' }}
+        args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 pypy3.8 pypy3.9 pypy3.10' }}
         rust-toolchain: stable
 
     - run: ${{ matrix.ls || 'ls -lh' }} dist/
