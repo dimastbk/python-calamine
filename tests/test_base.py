@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from io import BytesIO
 from pathlib import Path
 
@@ -67,9 +67,8 @@ def test_xls_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
 
@@ -88,9 +87,8 @@ def test_xls_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
@@ -111,9 +109,8 @@ def test_xlsb_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
 
@@ -132,9 +129,8 @@ def test_xlsb_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
@@ -155,9 +151,8 @@ def test_xlsx_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
 
@@ -176,9 +171,8 @@ def test_xlsx_read():
             date(2010, 10, 10),
             datetime(2010, 10, 10, 10, 10, 10),
             time(10, 10, 10),
-            time(10, 10, 10, 100000),
-            # duration (255:10:10) isn't supported
-            datetime(1900, 1, 9, 15, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()

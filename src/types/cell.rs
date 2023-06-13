@@ -11,6 +11,7 @@ pub enum CellValue {
     Time(chrono::NaiveTime),
     Date(chrono::NaiveDate),
     DateTime(chrono::NaiveDateTime),
+    Timedelta(chrono::Duration),
     Bool(bool),
     Empty,
 }
@@ -25,6 +26,7 @@ impl IntoPy<PyObject> for CellValue {
             CellValue::Time(v) => v.to_object(py),
             CellValue::Date(v) => v.to_object(py),
             CellValue::DateTime(v) => v.to_object(py),
+            CellValue::Timedelta(v) => v.to_object(py),
             CellValue::Empty => "".to_object(py),
         }
     }
@@ -56,6 +58,10 @@ impl From<&DataType> for CellValue {
                 }
             }
             .unwrap_or(CellValue::String(v.to_owned())),
+            DataType::Duration(v) => value
+                .as_duration()
+                .map(CellValue::Timedelta)
+                .unwrap_or(CellValue::Float(v.to_owned())),
             DataType::DurationIso(v) => value
                 .as_time()
                 .map(CellValue::Time)
