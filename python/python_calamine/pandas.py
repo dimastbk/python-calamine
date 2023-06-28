@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
-from typing import Union
+from typing import Union, cast
 
 import pandas as pd
 from pandas._typing import FilePath, ReadBuffer, Scalar, StorageOptions
@@ -71,7 +71,8 @@ class CalamineExcelReader(BaseExcelReader):
             elif isinstance(value, date):
                 return pd.Timestamp(value)
             elif isinstance(value, time):
-                return value.isoformat()
+                # cast needed here because Scalar doesn't include datetime.time
+                return cast(Scalar, value)
 
             return value
 
