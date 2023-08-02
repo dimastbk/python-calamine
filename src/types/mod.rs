@@ -5,7 +5,7 @@ mod cell;
 mod sheet;
 mod workbook;
 pub use cell::CellValue;
-pub use sheet::CalamineSheet;
+pub use sheet::{CalamineSheet, SheetMetadata, SheetTypeEnum, SheetVisibleEnum};
 pub use workbook::CalamineWorkbook;
 
 create_exception!(python_calamine, CalamineError, PyException);
