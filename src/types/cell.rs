@@ -3,6 +3,9 @@ use std::convert::From;
 use calamine::DataType;
 use pyo3::prelude::*;
 
+/// https://learn.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
+static EXCEL_1900_1904_DIFF: f64 = 1462.0;
+
 #[derive(Debug)]
 pub enum CellValue {
     Int(i64),
@@ -39,7 +42,9 @@ impl From<&DataType> for CellValue {
             DataType::Float(v) => CellValue::Float(v.to_owned()),
             DataType::String(v) => CellValue::String(String::from(v)),
             DataType::DateTime(v) => {
-                if v < &1.0 {
+                // FIXME: need to fix after fixing in calamine
+                if v < &1.0 || (*v - EXCEL_1900_1904_DIFF < 1.0 && *v - EXCEL_1900_1904_DIFF > 0.0)
+                {
                     value.as_time().map(CellValue::Time)
                 } else if *v == (*v as u64) as f64 {
                     value.as_date().map(CellValue::Date)
