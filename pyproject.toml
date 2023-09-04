@@ -8,7 +8,8 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11"
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
 
 [tool.isort]
@@ -27,9 +28,9 @@ python-source = "python"
 
 [tool.poetry]
 name = "python-calamine"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
-authors = ["Dmitriy <dimastbk@yandex.ru>"]
+authors = ["Dmitriy <dimastbk@proton.me>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
