@@ -8,7 +8,7 @@ use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
 use crate::utils::err_to_py;
-use crate::{CalamineError, CalamineSheet};
+use crate::{CalamineError, CalamineSheet, SheetMetadata};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),
@@ -16,7 +16,17 @@ enum SheetsEnum {
 }
 
 impl SheetsEnum {
-    fn sheet_names(&self) -> &[String] {
+    fn sheets_metadata(&self) -> Vec<SheetMetadata> {
+        match self {
+            SheetsEnum::File(f) => f.sheets_metadata(),
+            SheetsEnum::FileLike(f) => f.sheets_metadata(),
+        }
+        .iter()
+        .map(|s| SheetMetadata::new(s.name.clone(), s.typ, s.visible))
+        .collect()
+    }
+
+    fn sheet_names(&self) -> Vec<String> {
         match self {
             SheetsEnum::File(f) => f.sheet_names(),
             SheetsEnum::FileLike(f) => f.sheet_names(),
@@ -46,13 +56,24 @@ impl SheetsEnum {
 
 #[pyclass]
 pub struct CalamineWorkbook {
+    #[pyo3(get)]
+    path: Option<String>,
     sheets: SheetsEnum,
+    #[pyo3(get)]
+    sheets_metadata: Vec<SheetMetadata>,
     #[pyo3(get)]
     sheet_names: Vec<String>,
 }
 
 #[pymethods]
 impl CalamineWorkbook {
+    fn __repr__(&self) -> PyResult<String> {
+        match &self.path {
+            Some(path) => Ok(format!("CalamineWorkbook(path='{}')", path)),
+            None => Ok("CalamineWorkbook(path='bytes')".to_string()),
+        }
+    }
+
     #[classmethod]
     #[pyo3(name = "from_object")]
     fn py_from_object(_cls: &PyType, path_or_filelike: PyObject) -> PyResult<Self> {
@@ -116,9 +137,12 @@ impl CalamineWorkbook {
         let reader = Cursor::new(buf);
         let sheets = SheetsEnum::FileLike(open_workbook_auto_from_rs(reader).map_err(err_to_py)?);
         let sheet_names = sheets.sheet_names().to_owned();
+        let sheets_metadata = sheets.sheets_metadata().to_owned();
 
         Ok(Self {
+            path: None,
             sheets,
+            sheets_metadata,
             sheet_names,
         })
     }
@@ -126,9 +150,12 @@ impl CalamineWorkbook {
     pub fn from_path(path: &str) -> PyResult<Self> {
         let sheets = SheetsEnum::File(open_workbook_auto(path).map_err(err_to_py)?);
         let sheet_names = sheets.sheet_names().to_owned();
+        let sheets_metadata = sheets.sheets_metadata().to_owned();
 
         Ok(Self {
+            path: Some(path.to_string()),
             sheets,
+            sheets_metadata,
             sheet_names,
         })
     }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from datetime import date, datetime, time
 from os import PathLike
 from typing import Protocol
@@ -9,6 +10,27 @@ ValueT = int | float | str | bool | time | date | datetime
 class ReadBuffer(Protocol):
     def seek(self) -> int: ...
     def read(self) -> bytes: ...
+
+class SheetTypeEnum(enum.Enum):
+    WorkSheet = ...
+    DialogSheet = ...
+    MacroSheet = ...
+    ChartSheet = ...
+    VBA = ...
+
+class SheetVisibleEnum(enum.Enum):
+    Visible = ...
+    Hidden = ...
+    VeryHidden = ...
+
+class SheetMetadata:
+    name: str
+    typ: SheetTypeEnum
+    visible: SheetVisibleEnum
+
+    def __init__(
+        self, name: str, typ: SheetTypeEnum, visible: SheetVisibleEnum
+    ) -> None: ...
 
 class CalamineSheet:
     name: str
@@ -37,7 +59,9 @@ class CalamineSheet:
         """
 
 class CalamineWorkbook:
+    path: str | None
     sheet_names: list[str]
+    sheets_metadata: list[SheetMetadata]
     @classmethod
     def from_object(
         cls, path_or_filelike: str | PathLike | ReadBuffer
