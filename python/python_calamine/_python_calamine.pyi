@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import enum
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from os import PathLike
 from typing import Protocol
 
-ValueT = int | float | str | bool | time | date | datetime
+ValueT = int | float | str | bool | time | date | datetime | timedelta
 
 class ReadBuffer(Protocol):
     def seek(self) -> int: ...
