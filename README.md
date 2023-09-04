@@ -41,7 +41,7 @@ workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").t
 # ]
 ```
 
-Also, you can use monkeypatch for pandas for use this library as engine in `read_excel()`.
+Also, you can use monkeypatch for pandas for use this library as engine in `read_excel()` (only pandas 2 is supported).
 ```python
 from pandas import read_excel
 from python_calamine.pandas import pandas_monkeypatch

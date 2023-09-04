@@ -13,19 +13,32 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.python-version }} rust stable
+    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }}
     strategy:
       fail-fast: false
       matrix:
         python-version:
-        - '3.8'
         - '3.9'
         - '3.10'
         - '3.11'
-        - '3.12'
-        - pypy3.8
-        - pypy3.9
-        - pypy3.10
+        pandas-version:
+        - '2.0.*'
+        - '2.1.*'
+        include:
+        - python-version: '3.8'
+          pandas-version: '2.0.*'
+        # https://github.com/pandas-dev/pandas/issues/53665
+        - python-version: '3.12'
+          pandas-version: 'none'
+        # https://github.com/pandas-dev/pandas/issues/42509
+        - python-version: 'pypy3.8'
+          pandas-version: 'none'
+        # https://github.com/pandas-dev/pandas/issues/42509
+        - python-version: 'pypy3.9'
+          pandas-version: 'none'
+        # https://github.com/pandas-dev/pandas/issues/42509
+        - python-version: 'pypy3.10'
+          pandas-version: 'none'
 
     runs-on: ubuntu-latest
 
@@ -61,7 +74,13 @@ jobs:
           py
           ${{ runner.os }}
           ${{ env.pythonLocation }}
-    - run: pip install pytest
+
+    - run: |
+        if [ ${{ matrix.pandas-version }} == 'none' ]; then
+          pip install pytest
+        else
+          pip install pytest pandas[excel]==${{ matrix.pandas-version }}
+        fi
       if: steps.cache-py.outputs.cache-hit != 'true'
 
     - run: pip install -e .
