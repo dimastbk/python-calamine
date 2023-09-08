@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Display;
 
 use calamine::{DataType, Range, SheetType, SheetVisible};
@@ -168,28 +169,25 @@ impl CalamineSheet {
         skip_empty_area: bool,
         nrows: Option<u32>,
     ) -> PyResult<Vec<Vec<CellValue>>> {
-        let mut range = self.range.to_owned();
+        let nrows = match nrows {
+            Some(nrows) => nrows,
+            None => self.range.end().map_or(0, |end| end.0 + 1),
+        };
 
-        if !skip_empty_area {
-            if let Some(end) = range.end() {
-                range = range.range((0, 0), end)
-            }
-        }
-
-        if let Some(nrows) = nrows {
-            if range.end().is_some() && range.start().is_some() {
-                range = range.range(
-                    range.start().unwrap(),
-                    (
-                        range.start().unwrap().0 + (nrows - 1),
-                        range.end().unwrap().1,
-                    ),
-                )
-            }
-        }
+        let range = if skip_empty_area {
+            Cow::Borrowed(&self.range)
+        } else if let Some(end) = self.range.end() {
+            Cow::Owned(self.range.range(
+                (0, 0),
+                (if nrows > end.0 { end.0 } else { nrows - 1 }, end.1),
+            ))
+        } else {
+            Cow::Borrowed(&self.range)
+        };
 
         Ok(range
             .rows()
+            .take(nrows as usize)
             .map(|row| row.iter().map(|x| x.into()).collect())
             .collect())
     }
