@@ -46,7 +46,7 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: install rust stable
       uses: dtolnay/rust-toolchain@master
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: install rust stable
       uses: dtolnay/rust-toolchain@stable
@@ -107,7 +107,7 @@ jobs:
 
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - uses: actions/cache@v3
       id: cache-py
@@ -117,6 +117,7 @@ jobs:
         key: >
           py
           ${{ env.pythonLocation }}
+
     - run: pip install pre-commit
       if: steps.cache-py.outputs.cache-hit != 'true'
 
@@ -152,28 +153,24 @@ jobs:
           platform: linux
         - os: windows
           ls: dir
-          interpreter: 3.8 3.9 3.10 3.11
         - os: windows
           ls: dir
           target: i686
           python-architecture: x86
-          interpreter: 3.8 3.9 3.10 3.11
-        - os: macos
-          target: aarch64
           interpreter: 3.8 3.9 3.10 3.11 3.12
+        - os: windows
+          ls: dir
+          target: aarch64
+          interpreter: 3.11 3.12
         - os: ubuntu
           platform: linux
           target: i686
-          # GCC 4.8.5 in manylinux2014 container doesn't support c11 atomic
-          # we use manylinux_2_24 container for aarch64 and armv7 targets instead,
         - os: ubuntu
           platform: linux
           target: aarch64
-          container: messense/manylinux_2_24-cross:aarch64
         - os: ubuntu
           platform: linux
           target: armv7
-          container: messense/manylinux_2_24-cross:armv7
           interpreter: 3.8 3.9 3.10 3.11 3.12
           # musllinux
         - os: ubuntu
@@ -187,12 +184,10 @@ jobs:
         - os: ubuntu
           platform: linux
           target: ppc64le
-          container: messense/manylinux_2_24-cross:ppc64le
           interpreter: 3.8 3.9 3.10 3.11 3.12
         - os: ubuntu
           platform: linux
           target: s390x
-          container: messense/manylinux_2_24-cross:s390x
           interpreter: 3.8 3.9 3.10 3.11 3.12
         exclude:
           # Windows on arm64 only supports Python 3.11+
@@ -201,7 +196,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: set up python
       uses: actions/setup-python@v4
@@ -224,13 +219,12 @@ jobs:
       with:
         target: ${{ matrix.target }}
         manylinux: ${{ matrix.manylinux || 'auto' }}
-        container: ${{ matrix.container }}
         args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 pypy3.8 pypy3.9 pypy3.10' }}
         rust-toolchain: stable
 
     - run: ${{ matrix.ls || 'ls -lh' }} dist/
 
-    - run: twine check dist/*
+    - run: twine check --strict dist/*
 
     - uses: actions/upload-artifact@v3
       with:
@@ -243,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: set up python
       uses: actions/setup-python@v4
