@@ -180,6 +180,30 @@ def test_xlsx_read():
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
 
 
+def test_xlsx_iter_rows():
+    names = ["Sheet1", "Sheet2", "Sheet3"]
+    data = [
+        ["", "", "", "", "", "", "", "", "", ""],
+        [
+            "String",
+            1,
+            1.1,
+            True,
+            False,
+            date(2010, 10, 10),
+            datetime(2010, 10, 10, 10, 10, 10),
+            time(10, 10, 10),
+            timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
+            timedelta(hours=255, minutes=10, seconds=10),
+        ],
+    ]
+
+    reader = CalamineWorkbook.from_object(PATH / "base.xlsx")
+
+    assert names == reader.sheet_names
+    assert data == list(reader.get_sheet_by_index(0).iter_rows())
+
+
 def test_nrows():
     reader = CalamineWorkbook.from_object(PATH / "base.xlsx")
     sheet = reader.get_sheet_by_name("Sheet3")
