@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import enum
+import typing
 from datetime import date, datetime, time, timedelta
 from os import PathLike
-from typing import Protocol
 
 ValueT = int | float | str | bool | time | date | datetime | timedelta
 
-class ReadBuffer(Protocol):
+class ReadBuffer(typing.Protocol):
     def seek(self) -> int: ...
     def read(self) -> bytes: ...
 
@@ -57,6 +57,8 @@ class CalamineSheet:
             By default, calamine skips empty rows/cols before data.
             For suppress this behaviour, set `skip_empty_area` to `False`.
         """
+    def iter_rows(self) -> typing.Iterator[list[ValueT]]:
+        """Retunrning data from sheet as iterator of lists."""
 
 class CalamineWorkbook:
     path: str | None

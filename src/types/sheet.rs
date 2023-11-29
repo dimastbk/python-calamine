@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use calamine::{DataType, Range, SheetType, SheetVisible};
+use calamine::{DataType, Range, Rows, SheetType, SheetVisible};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
@@ -198,5 +198,56 @@ impl CalamineSheet {
                 )
             }),
         ))
+    }
+
+    fn iter_rows(&self) -> CalamineCellIterator {
+        CalamineCellIterator::from_range(Arc::clone(&self.range))
+    }
+}
+
+#[pyclass]
+pub struct CalamineCellIterator {
+    position: u32,
+    start: (u32, u32),
+    empty_row: Vec<CellValue>,
+    iter: Rows<'static, DataType>,
+    #[allow(dead_code)]
+    range: Arc<Range<DataType>>,
+}
+
+impl CalamineCellIterator {
+    fn from_range(range: Arc<Range<DataType>>) -> CalamineCellIterator {
+        let mut empty_row = Vec::with_capacity(range.width());
+        for _ in 0..range.width() {
+            empty_row.push(CellValue::String("".to_string()))
+        }
+        CalamineCellIterator {
+            empty_row,
+            position: 0,
+            start: range.start().unwrap(),
+            iter: unsafe { std::mem::transmute(range.rows()) },
+            range,
+        }
+    }
+}
+
+#[pymethods]
+impl CalamineCellIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<&PyList> {
+        slf.position += 1;
+        if slf.position > slf.start.0 {
+            slf.iter.next().map(|row| {
+                PyList::new(
+                    slf.py(),
+                    row.iter().map(<&DataType as Into<CellValue>>::into),
+                )
+            })
+        } else {
+            Some(PyList::new(slf.py(), slf.empty_row.clone()))
+        }
     }
 }
