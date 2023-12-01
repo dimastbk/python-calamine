@@ -76,59 +76,46 @@ impl CalamineWorkbook {
 
     #[classmethod]
     #[pyo3(name = "from_object")]
-    fn py_from_object(_cls: &PyType, path_or_filelike: PyObject) -> PyResult<Self> {
-        Self::from_object(path_or_filelike)
+    fn py_from_object(_cls: &PyType, py: Python<'_>, path_or_filelike: PyObject) -> PyResult<Self> {
+        Self::from_object(py, path_or_filelike)
     }
 
     #[classmethod]
     #[pyo3(name = "from_filelike")]
-    fn py_from_filelike(_cls: &PyType, filelike: PyObject) -> PyResult<Self> {
-        Self::from_filelike(filelike)
+    fn py_from_filelike(_cls: &PyType, py: Python<'_>, filelike: PyObject) -> PyResult<Self> {
+        py.allow_threads(|| Self::from_filelike(filelike))
     }
 
     #[classmethod]
     #[pyo3(name = "from_path")]
-    fn py_from_path(_cls: &PyType, path: &str) -> PyResult<Self> {
-        Self::from_path(path)
+    fn py_from_path(_cls: &PyType, py: Python<'_>, path: &str) -> PyResult<Self> {
+        py.allow_threads(|| Self::from_path(path))
     }
 
-    fn get_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineSheet> {
-        let range = self
-            .sheets
-            .worksheet_range(name)
-            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
-            .map_err(err_to_py)?;
-        Ok(CalamineSheet::new(name.to_owned(), range))
+    #[pyo3(name = "get_sheet_by_name")]
+    fn py_get_sheet_by_name(&mut self, py: Python<'_>, name: &str) -> PyResult<CalamineSheet> {
+        py.allow_threads(|| self.get_sheet_by_name(name))
     }
 
-    fn get_sheet_by_index(&mut self, index: usize) -> PyResult<CalamineSheet> {
-        let name = self
-            .sheet_names
-            .get(index)
-            .ok_or_else(|| CalamineError::new_err("Workbook is empty"))?
-            .to_string();
-        let range = self
-            .sheets
-            .worksheet_range_at(index)
-            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
-            .map_err(err_to_py)?;
-        Ok(CalamineSheet::new(name, range))
+    #[pyo3(name = "get_sheet_by_index")]
+    fn py_get_sheet_by_index(&mut self, py: Python<'_>, index: usize) -> PyResult<CalamineSheet> {
+        py.allow_threads(|| self.get_sheet_by_index(index))
     }
 }
 
 impl CalamineWorkbook {
-    pub fn from_object(path_or_filelike: PyObject) -> PyResult<Self> {
-        Python::with_gil(|py| {
-            if let Ok(string_ref) = path_or_filelike.downcast::<PyString>(py) {
-                return Self::from_path(string_ref.to_string_lossy().to_string().as_str());
-            }
+    pub fn from_object(py: Python<'_>, path_or_filelike: PyObject) -> PyResult<Self> {
+        if let Ok(string_ref) = path_or_filelike.downcast::<PyString>(py) {
+            let path = string_ref.to_string_lossy().to_string();
+            return py.allow_threads(|| Self::from_path(&path));
+        }
 
-            if let Ok(string_ref) = path_or_filelike.extract::<PathBuf>(py) {
-                return Self::from_path(string_ref.to_string_lossy().to_string().as_str());
-            }
+        if let Ok(string_ref) = path_or_filelike.extract::<PathBuf>(py) {
+            let path = string_ref.to_string_lossy().to_string();
+            return py.allow_threads(|| Self::from_path(&path));
+        }
 
-            Self::from_filelike(path_or_filelike)
-        })
+        py.allow_threads(|| Self::from_filelike(path_or_filelike))
     }
 
     pub fn from_filelike(filelike: PyObject) -> PyResult<Self> {
@@ -158,5 +145,29 @@ impl CalamineWorkbook {
             sheets_metadata,
             sheet_names,
         })
+    }
+
+    fn get_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineSheet> {
+        let range = self
+            .sheets
+            .worksheet_range(name)
+            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
+            .map_err(err_to_py)?;
+        Ok(CalamineSheet::new(name.to_owned(), range))
+    }
+
+    fn get_sheet_by_index(&mut self, index: usize) -> PyResult<CalamineSheet> {
+        let name = self
+            .sheet_names
+            .get(index)
+            .ok_or_else(|| CalamineError::new_err("Workbook is empty"))?
+            .to_string();
+        let range = self
+            .sheets
+            .worksheet_range_at(index)
+            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
+            .map_err(err_to_py)?;
+
+        Ok(CalamineSheet::new(name, range))
     }
 }
