@@ -1,4 +1,8 @@
 # python-calamine
+[![PyPI - Version](https://img.shields.io/pypi/v/python-calamine)](https://pypi.org/project/python-calamine/)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-calamine.svg)](https://anaconda.org/conda-forge/python-calamine)
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdimastbk%2Fpython-calamine%2Fmaster%2Fpyproject.toml)
+
 
 Python binding for beautiful Rust's library for reading excel and odf file - [calamine](https://github.com/tafia/calamine).
 
@@ -8,8 +12,13 @@ Python binding for beautiful Rust's library for reading excel and odf file - [ca
 * [maturin](https://github.com/PyO3/maturin)
 
 ### Installation
+Pypi:
 ```
 pip install python-calamine
+```
+Conda:
+```
+conda install -c conda-forge python-calamine
 ```
 
 ### Example
