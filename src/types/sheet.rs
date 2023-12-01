@@ -1,9 +1,10 @@
-use std::borrow::Cow;
 use std::fmt::Display;
+use std::sync::Arc;
 
 use calamine::{DataType, Range, SheetType, SheetVisible};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
+use pyo3::types::PyList;
 
 use crate::CellValue;
 
@@ -118,12 +119,15 @@ impl SheetMetadata {
 pub struct CalamineSheet {
     #[pyo3(get)]
     name: String,
-    range: Range<DataType>,
+    range: Arc<Range<DataType>>,
 }
 
 impl CalamineSheet {
     pub fn new(name: String, range: Range<DataType>) -> Self {
-        CalamineSheet { name, range }
+        CalamineSheet {
+            name,
+            range: Arc::new(range),
+        }
     }
 }
 
@@ -165,30 +169,34 @@ impl CalamineSheet {
 
     #[pyo3(signature = (skip_empty_area=true, nrows=None))]
     fn to_python(
-        &self,
+        slf: PyRef<'_, Self>,
         skip_empty_area: bool,
         nrows: Option<u32>,
-    ) -> PyResult<Vec<Vec<CellValue>>> {
+    ) -> PyResult<&PyList> {
         let nrows = match nrows {
             Some(nrows) => nrows,
-            None => self.range.end().map_or(0, |end| end.0 + 1),
+            None => slf.range.end().map_or(0, |end| end.0 + 1),
         };
 
-        let range = if skip_empty_area {
-            Cow::Borrowed(&self.range)
-        } else if let Some(end) = self.range.end() {
-            Cow::Owned(self.range.range(
+        let range = if skip_empty_area || Some((0, 0)) == slf.range.start() {
+            Arc::clone(&slf.range)
+        } else if let Some(end) = slf.range.end() {
+            Arc::new(slf.range.range(
                 (0, 0),
                 (if nrows > end.0 { end.0 } else { nrows - 1 }, end.1),
             ))
         } else {
-            Cow::Borrowed(&self.range)
+            Arc::clone(&slf.range)
         };
 
-        Ok(range
-            .rows()
-            .take(nrows as usize)
-            .map(|row| row.iter().map(|x| x.into()).collect())
-            .collect())
+        Ok(PyList::new(
+            slf.py(),
+            range.rows().take(nrows as usize).map(|row| {
+                PyList::new(
+                    slf.py(),
+                    row.iter().map(<&DataType as Into<CellValue>>::into),
+                )
+            }),
+        ))
     }
 }

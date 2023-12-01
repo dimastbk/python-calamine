@@ -21,6 +21,12 @@ pub enum CellValue {
 
 impl IntoPy<PyObject> for CellValue {
     fn into_py(self, py: Python) -> PyObject {
+        self.to_object(py)
+    }
+}
+
+impl ToPyObject for CellValue {
+    fn to_object(&self, py: Python<'_>) -> PyObject {
         match self {
             CellValue::Int(v) => v.to_object(py),
             CellValue::Float(v) => v.to_object(py),
