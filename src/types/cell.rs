@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 /// https://learn.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
 static EXCEL_1900_1904_DIFF: f64 = 1462.0;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CellValue {
     Int(i64),
     Float(f64),
