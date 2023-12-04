@@ -8,8 +8,8 @@ use crate::types::{
 };
 
 #[pyfunction]
-fn load_workbook(path_or_filelike: PyObject) -> PyResult<CalamineWorkbook> {
-    CalamineWorkbook::from_object(path_or_filelike)
+fn load_workbook(py: Python, path_or_filelike: PyObject) -> PyResult<CalamineWorkbook> {
+    CalamineWorkbook::from_object(py, path_or_filelike)
 }
 
 #[pymodule]
