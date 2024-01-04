@@ -10,8 +10,12 @@ from pandas._typing import Scalar
 from pandas.compat._optional import import_optional_dependency
 from pandas.core.shared_docs import _shared_docs
 from pandas.io.excel import ExcelFile
-from pandas.io.excel._base import BaseExcelReader
-from pandas.util._decorators import doc
+from pandas.io.excel._base import (  # type:ignore[attr-defined] # missing in pandas-stubs
+    BaseExcelReader,
+)
+from pandas.util._decorators import (  # type:ignore[attr-defined] # missing in pandas-stubs
+    doc,
+)
 
 if TYPE_CHECKING:
     from pandas._typing import FilePath, ReadBuffer, StorageOptions
@@ -123,8 +127,8 @@ class CalamineExcelReader(BaseExcelReader):
         return data
 
 
-def pandas_monkeypatch():
-    ExcelFile._engines = {
+def pandas_monkeypatch() -> None:
+    ExcelFile._engines = {  # type:ignore[attr-defined] # missing in pandas-stubs
         "calamine": CalamineExcelReader,
-        **ExcelFile._engines,
+        **ExcelFile._engines,  # type:ignore[attr-defined] # missing in pandas-stubs
     }

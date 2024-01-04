@@ -18,6 +18,12 @@ line_length = 88
 multi_line_output = 3
 profile = "black"
 
+[tool.mypy]
+python_version = "3.8"
+ignore_missing_imports = false
+disallow_untyped_defs = true
+check_untyped_defs = true
+
 [build-system]
 requires = ["maturin>=1,<2"]
 build-backend = "maturin"
