@@ -3,7 +3,7 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest
-from python_calamine import CalamineWorkbook
+from python_calamine import CalamineWorkbook, PasswordError, WorksheetNotFound, ZipError
 
 PATH = Path(__file__).parent / "data"
 
@@ -216,6 +216,62 @@ def test_nrows():
         ["line2", "line2", "line2"],
         ["line3", "line3", "line3"],
     ]
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        PATH / "base.xlsx",
+        PATH / "base.xls",
+        PATH / "base.xlsb",
+        PATH / "base.ods",
+    ],
+)
+def test_worksheet_errors(path):
+    reader = CalamineWorkbook.from_object(path)
+    with pytest.raises(WorksheetNotFound):
+        reader.get_sheet_by_name("Sheet4")
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        PATH / "password.xlsx",
+        PATH / "password.xls",
+        PATH / "password.xlsb",
+        PATH / "password.ods",
+    ],
+)
+def test_password_errors(path):
+    with pytest.raises(PasswordError):
+        CalamineWorkbook.from_object(path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        PATH / "error.xlsx",
+        PATH / "error.xlsb",
+        PATH / "error.ods",
+    ],
+)
+def test_zip_errors(path):
+    with pytest.raises(ZipError):
+        CalamineWorkbook.from_path(path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        PATH / "base1.xlsx",
+        PATH / "base1.xls",
+        PATH / "base1.xlsb",
+        PATH / "base1.ods",
+    ],
+)
+def test_io_errors(path):
+    with pytest.raises(IOError):
+        CalamineWorkbook.from_path(path)
 
 
 @pytest.mark.parametrize(
