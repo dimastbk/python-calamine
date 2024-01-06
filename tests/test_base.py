@@ -219,13 +219,19 @@ def test_nrows():
 
 
 @pytest.mark.parametrize(
-    "obj",
+    "path",
     [
+        PATH / "base.xlsx",
         (PATH / "base.xlsx").as_posix(),
     ],
 )
-def test_path(obj):
-    CalamineWorkbook.from_path(obj)
+def test_path(path):
+    CalamineWorkbook.from_path(path)
+
+
+def test_path_error():
+    with pytest.raises(TypeError):
+        CalamineWorkbook.from_path(object())
 
 
 @pytest.mark.parametrize(

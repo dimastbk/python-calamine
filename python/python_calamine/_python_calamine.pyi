@@ -76,7 +76,7 @@ class CalamineWorkbook:
             - IO (must imlpement read/seek methods).
         """
     @classmethod
-    def from_path(cls, path: str) -> "CalamineWorkbook":
+    def from_path(cls, path: str | PathLike) -> "CalamineWorkbook":
         """Reading file from path.
 
         Parameters
