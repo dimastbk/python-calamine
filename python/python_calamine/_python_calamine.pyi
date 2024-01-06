@@ -1,28 +1,30 @@
 from __future__ import annotations
 
+import datetime
 import enum
-from datetime import date, datetime, time, timedelta
-from os import PathLike
-from typing import Protocol
+import os
+import typing
 
-ValueT = int | float | str | bool | time | date | datetime | timedelta
-
-class ReadBuffer(Protocol):
+@typing.type_check_only
+class ReadBuffer(typing.Protocol):
     def seek(self, __offset: int, __whence: int = ...) -> int: ...
     def read(self, __size: int = ...) -> bytes | None: ...
 
+@typing.final
 class SheetTypeEnum(enum.Enum):
     WorkSheet = ...
     DialogSheet = ...
     MacroSheet = ...
     ChartSheet = ...
-    VBA = ...
+    Vba = ...
 
+@typing.final
 class SheetVisibleEnum(enum.Enum):
     Visible = ...
     Hidden = ...
     VeryHidden = ...
 
+@typing.final
 class SheetMetadata:
     name: str
     typ: SheetTypeEnum
@@ -32,6 +34,7 @@ class SheetMetadata:
         self, name: str, typ: SheetTypeEnum, visible: SheetVisibleEnum
     ) -> None: ...
 
+@typing.final
 class CalamineSheet:
     name: str
     @property
@@ -48,7 +51,18 @@ class CalamineSheet:
     def end(self) -> tuple[int, int] | None: ...
     def to_python(
         self, skip_empty_area: bool = True, nrows: int | None = None
-    ) -> list[list[ValueT]]:
+    ) -> list[
+        list[
+            int
+            | float
+            | str
+            | bool
+            | datetime.time
+            | datetime.date
+            | datetime.datetime
+            | datetime.timedelta
+        ]
+    ]:
         """Retunrning data from sheet as list of lists.
 
         Parameters
@@ -58,13 +72,14 @@ class CalamineSheet:
             For suppress this behaviour, set `skip_empty_area` to `False`.
         """
 
+@typing.final
 class CalamineWorkbook:
     path: str | None
     sheet_names: list[str]
     sheets_metadata: list[SheetMetadata]
     @classmethod
     def from_object(
-        cls, path_or_filelike: str | PathLike | ReadBuffer
+        cls, path_or_filelike: str | os.PathLike | ReadBuffer
     ) -> "CalamineWorkbook":
         """Determining type of pyobject and reading from it.
 
@@ -76,7 +91,7 @@ class CalamineWorkbook:
             - IO (must imlpement read/seek methods).
         """
     @classmethod
-    def from_path(cls, path: str | PathLike) -> "CalamineWorkbook":
+    def from_path(cls, path: str | os.PathLike) -> "CalamineWorkbook":
         """Reading file from path.
 
         Parameters
@@ -96,7 +111,7 @@ class CalamineWorkbook:
 class CalamineError(Exception): ...
 
 def load_workbook(
-    path_or_filelike: str | PathLike | ReadBuffer,
+    path_or_filelike: str | os.PathLike | ReadBuffer,
 ) -> CalamineWorkbook:
     """Determining type of pyobject and reading from it.
 
