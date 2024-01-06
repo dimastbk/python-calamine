@@ -3,6 +3,7 @@ use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
 
 use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Error, Reader, Sheets};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
@@ -88,8 +89,18 @@ impl CalamineWorkbook {
 
     #[classmethod]
     #[pyo3(name = "from_path")]
-    fn py_from_path(_cls: &PyType, py: Python<'_>, path: &str) -> PyResult<Self> {
-        py.allow_threads(|| Self::from_path(path))
+    fn py_from_path(_cls: &PyType, py: Python<'_>, path: PyObject) -> PyResult<Self> {
+        if let Ok(string_ref) = path.downcast::<PyString>(py) {
+            let path = string_ref.to_string_lossy().to_string();
+            return py.allow_threads(|| Self::from_path(&path));
+        }
+
+        if let Ok(string_ref) = path.extract::<PathBuf>(py) {
+            let path = string_ref.to_string_lossy().to_string();
+            return py.allow_threads(|| Self::from_path(&path));
+        }
+
+        Err(PyTypeError::new_err(""))
     }
 
     #[pyo3(name = "get_sheet_by_name")]
