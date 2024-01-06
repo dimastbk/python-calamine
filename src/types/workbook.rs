@@ -37,7 +37,7 @@ impl SheetsEnum {
     fn worksheet_range(
         &mut self,
         name: &str,
-    ) -> Option<Result<calamine::Range<calamine::DataType>, Error>> {
+    ) -> Result<calamine::Range<calamine::DataType>, Error> {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name),
             SheetsEnum::FileLike(f) => f.worksheet_range(name),
@@ -159,11 +159,7 @@ impl CalamineWorkbook {
     }
 
     fn get_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineSheet> {
-        let range = self
-            .sheets
-            .worksheet_range(name)
-            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
-            .map_err(err_to_py)?;
+        let range = self.sheets.worksheet_range(name).map_err(err_to_py)?;
         Ok(CalamineSheet::new(name.to_owned(), range))
     }
 

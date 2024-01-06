@@ -14,9 +14,13 @@ name = "python_calamine"
 crate-type = ["cdylib"]
 
 [dependencies]
-calamine = {version = "0.22.1", features = ["dates"]}
-pyo3 = {version = "0.19.2", features = ["extension-module", "chrono", "generate-import-lib"]}
-chrono = {version = "0.4.28", features = ["serde"]}
+calamine = { version = "0.23.1", features = ["dates"] }
+pyo3 = { version = "0.19.2", features = [
+    "extension-module",
+    "chrono",
+    "generate-import-lib",
+] }
+chrono = { version = "0.4.28", features = ["serde"] }
 pyo3-file = "0.7.0"
 
 [build-dependencies]
