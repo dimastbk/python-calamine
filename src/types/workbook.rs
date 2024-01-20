@@ -34,10 +34,7 @@ impl SheetsEnum {
         }
     }
 
-    fn worksheet_range(
-        &mut self,
-        name: &str,
-    ) -> Result<calamine::Range<calamine::DataType>, Error> {
+    fn worksheet_range(&mut self, name: &str) -> Result<calamine::Range<calamine::Data>, Error> {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name),
             SheetsEnum::FileLike(f) => f.worksheet_range(name),
@@ -47,7 +44,7 @@ impl SheetsEnum {
     fn worksheet_range_at(
         &mut self,
         index: usize,
-    ) -> Option<Result<calamine::Range<calamine::DataType>, Error>> {
+    ) -> Option<Result<calamine::Range<calamine::Data>, Error>> {
         match self {
             SheetsEnum::File(f) => f.worksheet_range_at(index),
             SheetsEnum::FileLike(f) => f.worksheet_range_at(index),

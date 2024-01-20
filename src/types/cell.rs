@@ -3,9 +3,6 @@ use std::convert::From;
 use calamine::DataType;
 use pyo3::prelude::*;
 
-/// https://learn.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
-static EXCEL_1900_1904_DIFF: f64 = 1462.0;
-
 #[derive(Debug)]
 pub enum CellValue {
     Int(i64),
@@ -41,45 +38,63 @@ impl ToPyObject for CellValue {
     }
 }
 
-impl From<&DataType> for CellValue {
-    fn from(value: &DataType) -> Self {
-        match value {
-            DataType::Int(v) => CellValue::Int(v.to_owned()),
-            DataType::Float(v) => CellValue::Float(v.to_owned()),
-            DataType::String(v) => CellValue::String(String::from(v)),
-            DataType::DateTime(v) => {
-                // FIXME: need to fix after fixing in calamine
-                if v < &1.0 || (*v - EXCEL_1900_1904_DIFF < 1.0 && *v - EXCEL_1900_1904_DIFF > 0.0)
-                {
-                    value.as_time().map(CellValue::Time)
-                } else if *v == (*v as u64) as f64 {
-                    value.as_date().map(CellValue::Date)
-                } else {
-                    value.as_datetime().map(CellValue::DateTime)
-                }
+impl<DT> From<&DT> for CellValue
+where
+    DT: DataType,
+{
+    fn from(value: &DT) -> Self {
+        if value.is_int() {
+            value
+                .get_int()
+                .map(CellValue::Int)
+                .unwrap_or(CellValue::Empty)
+        } else if value.is_float() {
+            value
+                .get_float()
+                .map(CellValue::Float)
+                .unwrap_or(CellValue::Empty)
+        } else if value.is_string() {
+            value
+                .get_string()
+                .map(|s| CellValue::String(s.to_owned()))
+                .unwrap_or(CellValue::Empty)
+        } else if value.is_datetime() {
+            let dt = value.get_datetime().unwrap();
+            let v = dt.as_f64();
+            if dt.is_duration() {
+                value.as_duration().map(CellValue::Timedelta)
+            } else if v < 1.0 {
+                value.as_time().map(CellValue::Time)
+            } else if v == (v as u64) as f64 {
+                value.as_date().map(CellValue::Date)
+            } else {
+                value.as_datetime().map(CellValue::DateTime)
             }
-            .unwrap_or(CellValue::Float(v.to_owned())),
-            DataType::DateTimeIso(v) => {
-                if v.contains('T') {
-                    value.as_datetime().map(CellValue::DateTime)
-                } else if v.contains(':') {
-                    value.as_time().map(CellValue::Time)
-                } else {
-                    value.as_date().map(CellValue::Date)
-                }
+            .unwrap_or(CellValue::Float(v))
+        } else if value.is_datetime_iso() {
+            let v = value.get_datetime_iso().unwrap();
+            if v.contains('T') {
+                value.as_datetime().map(CellValue::DateTime)
+            } else if v.contains(':') {
+                value.as_time().map(CellValue::Time)
+            } else {
+                value.as_date().map(CellValue::Date)
             }
-            .unwrap_or(CellValue::String(v.to_owned())),
-            DataType::Duration(v) => value
-                .as_duration()
-                .map(CellValue::Timedelta)
-                .unwrap_or(CellValue::Float(v.to_owned())),
-            DataType::DurationIso(v) => value
-                .as_time()
-                .map(CellValue::Time)
-                .unwrap_or(CellValue::String(v.to_owned())),
-            DataType::Bool(v) => CellValue::Bool(v.to_owned()),
-            DataType::Error(_) => CellValue::Empty,
-            DataType::Empty => CellValue::Empty,
+            .unwrap_or(CellValue::String(v.to_owned()))
+        } else if value.is_duration_iso() {
+            value.as_time().map(CellValue::Time).unwrap_or(
+                value
+                    .get_duration_iso()
+                    .map(|s| CellValue::String(s.to_owned()))
+                    .unwrap_or(CellValue::Empty),
+            )
+        } else if value.is_bool() {
+            value
+                .get_bool()
+                .map(CellValue::Bool)
+                .unwrap_or(CellValue::Empty)
+        } else {
+            CellValue::Empty
         }
     }
 }
