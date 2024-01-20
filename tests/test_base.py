@@ -250,9 +250,9 @@ def test_password_errors(path):
 @pytest.mark.parametrize(
     "path",
     [
-        PATH / "error.xlsx",
-        PATH / "error.xlsb",
-        PATH / "error.ods",
+        PATH / "empty_file.xlsx",
+        PATH / "empty_file.xlsb",
+        PATH / "empty_file.ods",
     ],
 )
 def test_zip_errors(path):
@@ -263,10 +263,10 @@ def test_zip_errors(path):
 @pytest.mark.parametrize(
     "path",
     [
-        PATH / "base1.xlsx",
-        PATH / "base1.xls",
-        PATH / "base1.xlsb",
-        PATH / "base1.ods",
+        PATH / "non_existent_file.xlsx",
+        PATH / "non_existent_file.xls",
+        PATH / "non_existent_file.xlsb",
+        PATH / "non_existent_file.ods",
     ],
 )
 def test_io_errors(path):
