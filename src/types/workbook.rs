@@ -9,7 +9,7 @@ use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
 use crate::utils::err_to_py;
-use crate::{CalamineError, CalamineSheet, SheetMetadata};
+use crate::{CalamineSheet, SheetMetadata, WorksheetNotFound};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),
@@ -38,16 +38,6 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name),
             SheetsEnum::FileLike(f) => f.worksheet_range(name),
-        }
-    }
-
-    fn worksheet_range_at(
-        &mut self,
-        index: usize,
-    ) -> Option<Result<calamine::Range<calamine::Data>, Error>> {
-        match self {
-            SheetsEnum::File(f) => f.worksheet_range_at(index),
-            SheetsEnum::FileLike(f) => f.worksheet_range_at(index),
         }
     }
 }
@@ -164,14 +154,8 @@ impl CalamineWorkbook {
         let name = self
             .sheet_names
             .get(index)
-            .ok_or_else(|| CalamineError::new_err("Workbook is empty"))?
+            .ok_or_else(|| WorksheetNotFound::new_err(format!("Worksheet '{}' not found", index)))?
             .to_string();
-        let range = self
-            .sheets
-            .worksheet_range_at(index)
-            .unwrap_or_else(|| Err(Error::Msg("Workbook is empty")))
-            .map_err(err_to_py)?;
-
-        Ok(CalamineSheet::new(name, range))
+        self.get_sheet_by_name(&name)
     }
 }
