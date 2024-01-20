@@ -21,15 +21,14 @@ jobs:
         - '3.9'
         - '3.10'
         - '3.11'
+        - '3.12'
         pandas-version:
         - '2.0.*'
         - '2.1.*'
+        - '2.2.*'
         include:
         - python-version: '3.8'
           pandas-version: '2.0.*'
-        # https://github.com/pandas-dev/pandas/issues/53665
-        - python-version: '3.12'
-          pandas-version: 'none'
         # https://github.com/pandas-dev/pandas/issues/42509
         - python-version: 'pypy3.8'
           pandas-version: 'none'

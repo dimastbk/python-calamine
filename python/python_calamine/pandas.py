@@ -49,7 +49,9 @@ class CalamineExcelReader(BaseExcelReader):
             Arbitrary keyword arguments passed to excel engine.
         """
         import_optional_dependency("python_calamine")
-        if PANDAS_VERSION >= Version("2.1.0"):
+        if PANDAS_VERSION >= Version("2.2.0"):
+            raise ValueError("Pandas >= 2.2.0 has builtin support of calamine")
+        elif PANDAS_VERSION >= Version("2.1.0"):
             super().__init__(
                 filepath_or_buffer,
                 storage_options=storage_options,

@@ -4,14 +4,6 @@ import pytest
 
 
 @pytest.fixture
-def pandas_monkeypatch():
-    from python_calamine.pandas import pandas_monkeypatch
-
-    pandas_monkeypatch()
-    yield
-
-
-@pytest.fixture
 def expected_df_ods():
     import pandas as pd
 
