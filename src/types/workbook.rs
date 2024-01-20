@@ -8,9 +8,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
-use super::WorksheetNotFound;
 use crate::utils::err_to_py;
-use crate::{CalamineSheet, SheetMetadata};
+use crate::{CalamineSheet, SheetMetadata, WorksheetNotFound};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),

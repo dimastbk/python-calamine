@@ -2,7 +2,7 @@ use calamine::{Error, OdsError, XlsError, XlsbError, XlsxError};
 use pyo3::exceptions::PyIOError;
 use pyo3::PyErr;
 
-use crate::types::{CalamineError, PasswordError, WorksheetNotFound, XmlError, ZipError};
+use crate::{CalamineError, PasswordError, WorksheetNotFound, XmlError, ZipError};
 
 pub fn err_to_py(e: Error) -> PyErr {
     match e {
