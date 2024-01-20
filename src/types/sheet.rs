@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use calamine::{DataType, Range, SheetType, SheetVisible};
+use calamine::{Data, Range, SheetType, SheetVisible};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
@@ -119,11 +119,11 @@ impl SheetMetadata {
 pub struct CalamineSheet {
     #[pyo3(get)]
     name: String,
-    range: Arc<Range<DataType>>,
+    range: Arc<Range<Data>>,
 }
 
 impl CalamineSheet {
-    pub fn new(name: String, range: Range<DataType>) -> Self {
+    pub fn new(name: String, range: Range<Data>) -> Self {
         CalamineSheet {
             name,
             range: Arc::new(range),
@@ -191,12 +191,10 @@ impl CalamineSheet {
 
         Ok(PyList::new(
             slf.py(),
-            range.rows().take(nrows as usize).map(|row| {
-                PyList::new(
-                    slf.py(),
-                    row.iter().map(<&DataType as Into<CellValue>>::into),
-                )
-            }),
+            range
+                .rows()
+                .take(nrows as usize)
+                .map(|row| PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))),
         ))
     }
 }
