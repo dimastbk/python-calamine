@@ -90,6 +90,7 @@ class CalamineWorkbook:
             - pathlike (pathlib.Path),
             - IO (must imlpement read/seek methods).
         """
+
     @classmethod
     def from_path(cls, path: str | os.PathLike) -> "CalamineWorkbook":
         """Reading file from path.
@@ -97,6 +98,7 @@ class CalamineWorkbook:
         Parameters
         ----------
         path : path (string)."""
+
     @classmethod
     def from_filelike(cls, filelike: ReadBuffer) -> "CalamineWorkbook":
         """Reading file from IO.
@@ -105,6 +107,7 @@ class CalamineWorkbook:
         ----------
         filelike : IO (must imlpement read/seek methods).
         """
+
     def get_sheet_by_name(self, name: str) -> CalamineSheet: ...
     def get_sheet_by_index(self, index: int) -> CalamineSheet: ...
 

@@ -14,14 +14,14 @@ name = "python_calamine"
 crate-type = ["cdylib"]
 
 [dependencies]
-calamine = { git = "https://github.com/tafia/calamine/", rev = "2620510783cb150c84c4b174d3bdf461f1f68264", features = ["dates"] }
-pyo3 = { version = "0.19.2", features = [
+calamine = { version = "0.24.0", features = ["dates"] }
+pyo3 = { version = "0.20.2", features = [
     "extension-module",
     "chrono",
     "generate-import-lib",
 ] }
-chrono = { version = "0.4.28", features = ["serde"] }
-pyo3-file = "0.7.0"
+chrono = { version = "0.4.33", features = ["serde"] }
+pyo3-file = { git = "https://github.com/omerbenamram/pyo3-file", rev = "14e8f5f43b3ba6a0bdd734cbc452840e488d867a" }
 
 [build-dependencies]
-pyo3-build-config = "0.19.2"
+pyo3-build-config = "0.20.2"
