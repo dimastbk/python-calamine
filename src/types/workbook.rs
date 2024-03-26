@@ -64,20 +64,28 @@ impl CalamineWorkbook {
 
     #[classmethod]
     #[pyo3(name = "from_object")]
-    fn py_from_object(_cls: &PyType, py: Python<'_>, path_or_filelike: PyObject) -> PyResult<Self> {
+    fn py_from_object(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        path_or_filelike: PyObject,
+    ) -> PyResult<Self> {
         Self::from_object(py, path_or_filelike)
     }
 
     #[classmethod]
     #[pyo3(name = "from_filelike")]
-    fn py_from_filelike(_cls: &PyType, py: Python<'_>, filelike: PyObject) -> PyResult<Self> {
+    fn py_from_filelike(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        filelike: PyObject,
+    ) -> PyResult<Self> {
         py.allow_threads(|| Self::from_filelike(filelike))
     }
 
     #[classmethod]
     #[pyo3(name = "from_path")]
-    fn py_from_path(_cls: &PyType, py: Python<'_>, path: PyObject) -> PyResult<Self> {
-        if let Ok(string_ref) = path.downcast::<PyString>(py) {
+    fn py_from_path(_cls: &Bound<'_, PyType>, py: Python<'_>, path: PyObject) -> PyResult<Self> {
+        if let Ok(string_ref) = path.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
             return py.allow_threads(|| Self::from_path(&path));
         }
@@ -103,7 +111,7 @@ impl CalamineWorkbook {
 
 impl CalamineWorkbook {
     pub fn from_object(py: Python<'_>, path_or_filelike: PyObject) -> PyResult<Self> {
-        if let Ok(string_ref) = path_or_filelike.downcast::<PyString>(py) {
+        if let Ok(string_ref) = path_or_filelike.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
             return py.allow_threads(|| Self::from_path(&path));
         }
@@ -118,7 +126,8 @@ impl CalamineWorkbook {
 
     pub fn from_filelike(filelike: PyObject) -> PyResult<Self> {
         let mut buf = vec![];
-        PyFileLikeObject::with_requirements(filelike, true, false, true)?.read_to_end(&mut buf)?;
+        PyFileLikeObject::with_requirements(filelike, true, false, true, false)?
+            .read_to_end(&mut buf)?;
         let reader = Cursor::new(buf);
         let sheets = SheetsEnum::FileLike(open_workbook_auto_from_rs(reader).map_err(err_to_py)?);
         let sheet_names = sheets.sheet_names().to_owned();
