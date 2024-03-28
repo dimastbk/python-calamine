@@ -172,7 +172,7 @@ impl CalamineSheet {
         slf: PyRef<'_, Self>,
         skip_empty_area: bool,
         nrows: Option<u32>,
-    ) -> PyResult<&PyList> {
+    ) -> PyResult<Bound<'_, PyList>> {
         let nrows = match nrows {
             Some(nrows) => nrows,
             None => slf.range.end().map_or(0, |end| end.0 + 1),
@@ -189,12 +189,11 @@ impl CalamineSheet {
             Arc::clone(&slf.range)
         };
 
-        Ok(PyList::new(
+        Ok(PyList::new_bound(
             slf.py(),
-            range
-                .rows()
-                .take(nrows as usize)
-                .map(|row| PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))),
+            range.rows().take(nrows as usize).map(|row| {
+                PyList::new_bound(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
+            }),
         ))
     }
 }
