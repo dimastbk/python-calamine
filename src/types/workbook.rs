@@ -1,15 +1,20 @@
+use std::cell::RefCell;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
 
-use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Error, Reader, Sheets};
+use calamine::{
+    open_workbook_auto, open_workbook_auto_from_rs, Error, Reader, Sheets, XlsbCellsReader,
+    XlsxCellReader,
+};
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
+use crate::types::CalamineLazyReader;
 use crate::utils::err_to_py;
-use crate::{CalamineSheet, SheetMetadata, WorksheetNotFound};
+use crate::{CalamineLazySheet, CalamineSheet, SheetMetadata, WorksheetNotFound};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),
@@ -38,6 +43,49 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name),
             SheetsEnum::FileLike(f) => f.worksheet_range(name),
+        }
+    }
+
+    fn worksheet_cell_reader(&mut self, name: &str) -> Result<CalamineLazyReader, Error> {
+        match self {
+            SheetsEnum::File(f) => match f {
+                Sheets::Xlsb(r) => r
+                    .worksheet_cells_reader(name)
+                    .map(|x| unsafe {
+                        std::mem::transmute::<XlsbCellsReader<'_>, XlsbCellsReader<'static>>(x)
+                    })
+                    .map(RefCell::new)
+                    .map(CalamineLazyReader::Xlsb)
+                    .map_err(Error::Xlsb),
+                Sheets::Xlsx(r) => r
+                    .worksheet_cells_reader(name)
+                    .map(|x| unsafe {
+                        std::mem::transmute::<XlsxCellReader<'_>, XlsxCellReader<'static>>(x)
+                    })
+                    .map(RefCell::new)
+                    .map(CalamineLazyReader::Xlsx)
+                    .map_err(Error::Xlsx),
+                _ => unimplemented!(),
+            },
+            SheetsEnum::FileLike(f) => match f {
+                Sheets::Xlsb(r) => r
+                    .worksheet_cells_reader(name)
+                    .map(|x| unsafe {
+                        std::mem::transmute::<XlsbCellsReader<'_>, XlsbCellsReader<'static>>(x)
+                    })
+                    .map(RefCell::new)
+                    .map(CalamineLazyReader::Xlsb)
+                    .map_err(Error::Xlsb),
+                Sheets::Xlsx(r) => r
+                    .worksheet_cells_reader(name)
+                    .map(|x| unsafe {
+                        std::mem::transmute::<XlsxCellReader<'_>, XlsxCellReader<'static>>(x)
+                    })
+                    .map(RefCell::new)
+                    .map(CalamineLazyReader::Xlsx)
+                    .map_err(Error::Xlsx),
+                _ => unimplemented!(),
+            },
         }
     }
 }
@@ -107,6 +155,16 @@ impl CalamineWorkbook {
     fn py_get_sheet_by_index(&mut self, py: Python<'_>, index: usize) -> PyResult<CalamineSheet> {
         py.allow_threads(|| self.get_sheet_by_index(index))
     }
+
+    #[pyo3(name = "get_lazy_sheet_by_name")]
+    fn py_get_lazy_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineLazySheet> {
+        self.get_lazy_sheet_by_name(name)
+    }
+
+    #[pyo3(name = "get_lazy_sheet_by_index")]
+    fn py_get_lazy_sheet_by_index(&mut self, index: usize) -> PyResult<CalamineLazySheet> {
+        self.get_lazy_sheet_by_index(index)
+    }
 }
 
 impl CalamineWorkbook {
@@ -166,5 +224,19 @@ impl CalamineWorkbook {
             .ok_or_else(|| WorksheetNotFound::new_err(format!("Worksheet '{}' not found", index)))?
             .to_string();
         self.get_sheet_by_name(&name)
+    }
+
+    fn get_lazy_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineLazySheet> {
+        let reader = self.sheets.worksheet_cell_reader(name).map_err(err_to_py)?;
+        Ok(CalamineLazySheet::new(name.to_owned(), reader))
+    }
+
+    fn get_lazy_sheet_by_index(&mut self, index: usize) -> PyResult<CalamineLazySheet> {
+        let name = self
+            .sheet_names
+            .get(index)
+            .ok_or_else(|| WorksheetNotFound::new_err(format!("Worksheet '{}' not found", index)))?
+            .to_string();
+        self.get_lazy_sheet_by_name(&name)
     }
 }

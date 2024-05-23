@@ -5,10 +5,26 @@ import enum
 import os
 import typing
 
+from typing_extensions import Self
+
 @typing.type_check_only
 class ReadBuffer(typing.Protocol):
     def seek(self, __offset: int, __whence: int = ...) -> int: ...
     def read(self, __size: int = ...) -> bytes | None: ...
+
+@typing.final
+class LazyCell:
+    value: (
+        int
+        | float
+        | str
+        | bool
+        | datetime.time
+        | datetime.date
+        | datetime.datetime
+        | datetime.timedelta
+    )
+    pos: tuple[int, int]
 
 @typing.final
 class SheetTypeEnum(enum.Enum):
@@ -73,6 +89,12 @@ class CalamineSheet:
         """
 
 @typing.final
+class CalamineLazySheet:
+    name: str
+    def __iter__(self) -> Self: ...
+    def __next__(self) -> LazyCell: ...
+
+@typing.final
 class CalamineWorkbook:
     path: str | None
     sheet_names: list[str]
@@ -110,6 +132,8 @@ class CalamineWorkbook:
 
     def get_sheet_by_name(self, name: str) -> CalamineSheet: ...
     def get_sheet_by_index(self, index: int) -> CalamineSheet: ...
+    def get_lazy_sheet_by_name(self, name: str) -> CalamineLazySheet: ...
+    def get_lazy_sheet_by_index(self, index: int) -> CalamineLazySheet: ...
 
 class CalamineError(Exception): ...
 class PasswordError(CalamineError): ...

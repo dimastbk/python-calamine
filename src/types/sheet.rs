@@ -1,12 +1,34 @@
+use std::cell::RefCell;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use calamine::{Data, Range, SheetType, SheetVisible};
+use calamine::{
+    Data, Dimensions as CalamineDimensions, Error, Range, SheetType, SheetVisible, XlsbCellsReader,
+    XlsxCellReader,
+};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
-use crate::CellValue;
+use super::CalamineError;
+use crate::{CellValue, LazyCell};
+
+#[pyclass]
+pub struct Dimensions {
+    /// start: (row, col)
+    pub start: (u32, u32),
+    /// end: (row, col)
+    pub end: (u32, u32),
+}
+
+impl From<CalamineDimensions> for Dimensions {
+    fn from(value: CalamineDimensions) -> Self {
+        Dimensions {
+            start: value.start.to_owned(),
+            end: value.end.to_owned(),
+        }
+    }
+}
 
 #[pyclass]
 #[derive(Clone, Debug, PartialEq)]
@@ -195,5 +217,59 @@ impl CalamineSheet {
                 PyList::new_bound(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
             }),
         ))
+    }
+}
+
+pub(crate) enum CalamineLazyReader {
+    Xlsx(RefCell<XlsxCellReader<'static>>),
+    Xlsb(RefCell<XlsbCellsReader<'static>>),
+}
+
+impl CalamineLazyReader {
+    fn next_cell(&self) -> Result<Option<calamine::Cell<calamine::DataRef<'static>>>, Error> {
+        match self {
+            CalamineLazyReader::Xlsb(reader) => {
+                reader.borrow_mut().next_cell().map_err(Error::Xlsb)
+            }
+            CalamineLazyReader::Xlsx(reader) => {
+                reader.borrow_mut().next_cell().map_err(Error::Xlsx)
+            }
+        }
+    }
+    fn dimensions(&self) -> Dimensions {
+        match self {
+            CalamineLazyReader::Xlsb(reader) => reader.borrow().dimensions().into(),
+            CalamineLazyReader::Xlsx(reader) => reader.borrow().dimensions().into(),
+        }
+    }
+}
+
+#[pyclass(unsendable)]
+pub struct CalamineLazySheet {
+    #[pyo3(get)]
+    name: String,
+    reader: CalamineLazyReader,
+}
+
+impl CalamineLazySheet {
+    pub(crate) fn new(name: String, reader: CalamineLazyReader) -> Self {
+        CalamineLazySheet { name, reader }
+    }
+}
+
+#[pymethods]
+impl CalamineLazySheet {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+    fn __next__(slf: PyRef<'_, Self>) -> PyResult<Option<LazyCell>> {
+        match slf.reader.next_cell() {
+            Ok(Some(v)) => Ok(Some(LazyCell::from(v))),
+            Ok(None) => Ok(None),
+            Err(_) => Err(CalamineError::new_err("some error")),
+        }
+    }
+    fn dimensions(slf: PyRef<'_, Self>) -> Dimensions {
+        slf.reader.dimensions()
     }
 }

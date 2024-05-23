@@ -1,9 +1,10 @@
 use std::convert::From;
 
-use calamine::DataType;
+use calamine::{Cell, Data, DataRef, DataType};
+use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CellValue {
     Int(i64),
     Float(f64),
@@ -95,6 +96,54 @@ where
                 .unwrap_or(CellValue::Empty)
         } else {
             CellValue::Empty
+        }
+    }
+}
+
+#[pyclass]
+#[derive(Clone, Debug, PartialEq)]
+pub struct LazyCell {
+    #[pyo3(get)]
+    value: CellValue,
+    #[pyo3(get)]
+    pos: (u32, u32),
+}
+
+#[pymethods]
+impl LazyCell {
+    // implementation of some methods for testing
+    fn __repr__(slf: PyRef<'_, Self>) -> PyResult<String> {
+        Ok(format!(
+            "LazyCell(value='{}', pos=({}, {}) )",
+            slf.value.to_owned().into_py(slf.py()),
+            slf.pos.0,
+            slf.pos.1
+        ))
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => self.eq(other).into_py(py),
+            CompareOp::Ne => self.ne(other).into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
+}
+
+impl From<Cell<Data>> for LazyCell {
+    fn from(value: Cell<Data>) -> Self {
+        LazyCell {
+            value: CellValue::from(value.get_value()),
+            pos: value.get_position(),
+        }
+    }
+}
+
+impl From<Cell<DataRef<'_>>> for LazyCell {
+    fn from(value: Cell<DataRef<'_>>) -> Self {
+        LazyCell {
+            value: CellValue::from(value.get_value()),
+            pos: value.get_position(),
         }
     }
 }
