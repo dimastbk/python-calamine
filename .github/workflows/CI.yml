@@ -39,9 +39,9 @@ jobs:
         - python-version: '3.13'
           pandas-version: 'none'
         # https://github.com/pandas-dev/pandas/issues/58734
-        - python-version: '3.13'
-          pandas-version: 'none'
-          disable-gil: true
+        # - python-version: '3.13'
+        #   pandas-version: 'none'
+        #   disable-gil: true
 
     runs-on: ubuntu-latest
 
