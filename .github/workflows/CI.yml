@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }}
+    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }} ${{ matrix.disable-gil && 'free-threaded' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +35,13 @@ jobs:
         # https://github.com/pandas-dev/pandas/issues/42509
         - python-version: 'pypy3.10'
           pandas-version: 'none'
+        # https://github.com/pandas-dev/pandas/issues/58734
+        - python-version: '3.13'
+          pandas-version: 'none'
+        # https://github.com/pandas-dev/pandas/issues/58734
+        - python-version: '3.13'
+          pandas-version: 'none'
+          disable-gil: true
 
     runs-on: ubuntu-latest
 
@@ -56,10 +63,18 @@ jobs:
         key: v3
 
     - name: set up python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
+      if: "${{ !matrix.disable-gil }}"
       with:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
+
+    - name: set up python (free-threaded)
+      uses: deadsnakes/action@v3.1.0
+      if: "${{ matrix.disable-gil }}"
+      with:
+        python-version: ${{ matrix.python-version }}
+        nogil: ${{ matrix.disable-gil }}
 
     - id: cache-py
       name: cache python
@@ -153,11 +168,11 @@ jobs:
           ls: dir
           target: i686
           python-architecture: x86
-          interpreter: 3.8 3.9 3.10 3.11 3.12
+          interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
         - os: windows
           ls: dir
           target: aarch64
-          interpreter: 3.11 3.12
+          interpreter: 3.11 3.12 3.13
         - os: ubuntu
           platform: linux
           target: i686
@@ -167,7 +182,7 @@ jobs:
         - os: ubuntu
           platform: linux
           target: armv7
-          interpreter: 3.8 3.9 3.10 3.11 3.12
+          interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
           # musllinux
         - os: ubuntu
           platform: linux
@@ -180,11 +195,11 @@ jobs:
         - os: ubuntu
           platform: linux
           target: ppc64le
-          interpreter: 3.8 3.9 3.10 3.11 3.12
+          interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
         - os: ubuntu
           platform: linux
           target: s390x
-          interpreter: 3.8 3.9 3.10 3.11 3.12
+          interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
         exclude:
           # Windows on arm64 only supports Python 3.11+
         - os: windows
@@ -215,7 +230,7 @@ jobs:
       with:
         target: ${{ matrix.target }}
         manylinux: ${{ matrix.manylinux || 'auto' }}
-        args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 pypy3.8 pypy3.9 pypy3.10' }}
+        args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.8 pypy3.9 pypy3.10' }}
         rust-toolchain: stable
 
     - run: ${{ matrix.ls || 'ls -lh' }} dist/
