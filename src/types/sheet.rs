@@ -214,15 +214,19 @@ pub struct CalamineCellIterator {
 
 impl CalamineCellIterator {
     fn from_range(range: Arc<Range<Data>>) -> CalamineCellIterator {
-        let mut empty_row = Vec::with_capacity(range.width());
-        for _ in 0..range.width() {
-            empty_row.push(CellValue::String("".to_string()))
-        }
+        let empty_row = (0..range.width())
+            .map(|_| CellValue::String("".to_string()))
+            .collect();
         CalamineCellIterator {
             empty_row,
             position: 0,
             start: range.start().unwrap(),
-            iter: unsafe { std::mem::transmute(range.rows()) },
+            iter: unsafe {
+                std::mem::transmute::<
+                    calamine::Rows<'_, calamine::Data>,
+                    calamine::Rows<'static, calamine::Data>,
+                >(range.rows())
+            },
             range,
         }
     }
@@ -234,14 +238,14 @@ impl CalamineCellIterator {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<&PyList> {
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<Bound<'_, PyList>> {
         slf.position += 1;
         if slf.position > slf.start.0 {
-            slf.iter
-                .next()
-                .map(|row| PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)))
+            slf.iter.next().map(|row| {
+                PyList::new_bound(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
+            })
         } else {
-            Some(PyList::new(slf.py(), slf.empty_row.clone()))
+            Some(PyList::new_bound(slf.py(), slf.empty_row.clone()))
         }
     }
 }
