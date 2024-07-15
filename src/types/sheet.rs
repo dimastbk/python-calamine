@@ -8,7 +8,7 @@ use pyo3::types::PyList;
 
 use crate::CellValue;
 
-#[pyclass]
+#[pyclass(eq, eq_int)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetTypeEnum {
     /// WorkSheet
@@ -41,7 +41,7 @@ impl From<SheetType> for SheetTypeEnum {
     }
 }
 
-#[pyclass]
+#[pyclass(eq, eq_int)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetVisibleEnum {
     /// Visible
