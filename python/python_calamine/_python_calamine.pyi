@@ -72,6 +72,22 @@ class CalamineSheet:
             For suppress this behaviour, set `skip_empty_area` to `False`.
         """
 
+    def iter_rows(
+        self,
+    ) -> typing.Iterator[
+        list[
+            int
+            | float
+            | str
+            | bool
+            | datetime.time
+            | datetime.date
+            | datetime.datetime
+            | datetime.timedelta
+        ]
+    ]:
+        """Retunrning data from sheet as iterator of lists."""
+
 @typing.final
 class CalamineWorkbook:
     path: str | None

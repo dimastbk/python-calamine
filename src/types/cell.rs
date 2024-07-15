@@ -3,7 +3,7 @@ use std::convert::From;
 use calamine::DataType;
 use pyo3::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CellValue {
     Int(i64),
     Float(f64),
