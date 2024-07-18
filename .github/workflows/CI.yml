@@ -239,7 +239,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.platform || matrix.os }}-${{ matrix.target }}-${{ matrix.manylinux || 'auto' }}
         path: dist
 
   release:
@@ -260,8 +260,9 @@ jobs:
     - name: get dist artifacts
       uses: actions/download-artifact@v4
       with:
-        name: wheels
         path: dist
+        pattern: wheels-*
+        merge-multiple: true
 
     - run: twine check dist/*
 
