@@ -70,7 +70,7 @@ jobs:
         allow-prereleases: true
 
     - name: set up python (free-threaded)
-      uses: deadsnakes/action@v3.1.0
+      uses: deadsnakes/action@v3.2.0
       if: "${{ matrix.disable-gil }}"
       with:
         python-version: ${{ matrix.python-version }}
