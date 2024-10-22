@@ -10,6 +10,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 [tool.isort]
@@ -33,17 +34,15 @@ module-name = "python_calamine._python_calamine"
 python-source = "python"
 
 [tool.poetry]
-name = "python-calamine"
-version = "0.2.3"
-description = ""
-authors = ["Dmitriy <dimastbk@proton.me>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.8"
 packaging = "^23.1"
 
 [tool.poetry.group.dev.dependencies]
-maturin = "^1.0.1"
+maturin = "^1.7.4"
 pre-commit = "^3.0.1"
 pytest = "^8.0.0"
 pandas = {version = "^2.0.0", extras = ["excel"]}
+numpy = "^1.0.0"
