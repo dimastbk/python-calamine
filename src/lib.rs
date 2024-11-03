@@ -3,8 +3,8 @@ use pyo3::prelude::*;
 mod types;
 mod utils;
 use crate::types::{
-    CalamineError, CalamineSheet, CalamineWorkbook, CellValue, PasswordError, SheetMetadata,
-    SheetTypeEnum, SheetVisibleEnum, WorksheetNotFound, XmlError, ZipError,
+    CalamineError, CalamineSheet, CalamineWorkbook, CellValue, Error, PasswordError, SheetMetadata,
+    SheetTypeEnum, SheetVisibleEnum, WorkbookClosed, WorksheetNotFound, XmlError, ZipError,
 };
 
 #[pyfunction]
@@ -28,5 +28,6 @@ fn _python_calamine(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?;
     m.add("XmlError", py.get_type_bound::<XmlError>())?;
     m.add("ZipError", py.get_type_bound::<ZipError>())?;
+    m.add("WorkbookClosed", py.get_type_bound::<WorkbookClosed>())?;
     Ok(())
 }

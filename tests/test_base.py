@@ -3,7 +3,13 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest
-from python_calamine import CalamineWorkbook, PasswordError, WorksheetNotFound, ZipError
+from python_calamine import (
+    CalamineWorkbook,
+    PasswordError,
+    WorkbookClosed,
+    WorksheetNotFound,
+    ZipError,
+)
 
 PATH = Path(__file__).parent / "data"
 
@@ -341,3 +347,19 @@ def test_path_or_filelike(obj):
 def test_path_or_filelike_error():
     with pytest.raises(TypeError):
         CalamineWorkbook.from_object(object())
+
+
+def test_close_workbook():
+    reader = CalamineWorkbook.from_path(PATH / "base.xlsx")
+    reader.close()
+
+    with pytest.raises(WorkbookClosed):
+        reader.get_sheet_by_index(1)
+
+
+def test_close_workbook_double():
+    reader = CalamineWorkbook.from_path(PATH / "base.xlsx")
+    reader.close()
+
+    with pytest.raises(WorkbookClosed):
+        reader.close()
