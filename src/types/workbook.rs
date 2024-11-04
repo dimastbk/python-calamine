@@ -2,18 +2,19 @@ use std::fs::File;
 use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
 
-use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Error, Reader, Sheets};
+use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Reader, Sheets};
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
 use pyo3_file::PyFileLikeObject;
 
 use crate::utils::err_to_py;
-use crate::{CalamineSheet, SheetMetadata, WorksheetNotFound};
+use crate::{CalamineSheet, Error, SheetMetadata, WorksheetNotFound};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),
     FileLike(Sheets<Cursor<Vec<u8>>>),
+    None,
 }
 
 impl SheetsEnum {
@@ -21,6 +22,7 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.sheets_metadata(),
             SheetsEnum::FileLike(f) => f.sheets_metadata(),
+            SheetsEnum::None => unreachable!(),
         }
         .iter()
         .map(|s| SheetMetadata::new(s.name.clone(), s.typ, s.visible))
@@ -31,13 +33,15 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.sheet_names(),
             SheetsEnum::FileLike(f) => f.sheet_names(),
+            SheetsEnum::None => unreachable!(),
         }
     }
 
     fn worksheet_range(&mut self, name: &str) -> Result<calamine::Range<calamine::Data>, Error> {
         match self {
-            SheetsEnum::File(f) => f.worksheet_range(name),
-            SheetsEnum::FileLike(f) => f.worksheet_range(name),
+            SheetsEnum::File(f) => f.worksheet_range(name).map_err(Error::Calamine),
+            SheetsEnum::FileLike(f) => f.worksheet_range(name).map_err(Error::Calamine),
+            SheetsEnum::None => Err(Error::WorkbookClosed),
         }
     }
 }
@@ -107,6 +111,30 @@ impl CalamineWorkbook {
     fn py_get_sheet_by_index(&mut self, py: Python<'_>, index: usize) -> PyResult<CalamineSheet> {
         py.allow_threads(|| self.get_sheet_by_index(index))
     }
+
+    fn close(&mut self) -> PyResult<()> {
+        match self.sheets {
+            SheetsEnum::None => Err(Error::WorkbookClosed),
+            _ => {
+                self.sheets = SheetsEnum::None;
+                Ok(())
+            }
+        }
+        .map_err(err_to_py)
+    }
+
+    fn __enter__(slf: Py<Self>) -> Py<Self> {
+        slf
+    }
+
+    fn __exit__(
+        &mut self,
+        _exc_type: PyObject,
+        _exc_value: PyObject,
+        _traceback: PyObject,
+    ) -> PyResult<()> {
+        self.close()
+    }
 }
 
 impl CalamineWorkbook {
@@ -129,7 +157,11 @@ impl CalamineWorkbook {
         PyFileLikeObject::with_requirements(filelike, true, false, true, false)?
             .read_to_end(&mut buf)?;
         let reader = Cursor::new(buf);
-        let sheets = SheetsEnum::FileLike(open_workbook_auto_from_rs(reader).map_err(err_to_py)?);
+        let sheets = SheetsEnum::FileLike(
+            open_workbook_auto_from_rs(reader)
+                .map_err(Error::Calamine)
+                .map_err(err_to_py)?,
+        );
         let sheet_names = sheets.sheet_names().to_owned();
         let sheets_metadata = sheets.sheets_metadata().to_owned();
 
@@ -142,7 +174,11 @@ impl CalamineWorkbook {
     }
 
     pub fn from_path(path: &str) -> PyResult<Self> {
-        let sheets = SheetsEnum::File(open_workbook_auto(path).map_err(err_to_py)?);
+        let sheets = SheetsEnum::File(
+            open_workbook_auto(path)
+                .map_err(Error::Calamine)
+                .map_err(err_to_py)?,
+        );
         let sheet_names = sheets.sheet_names().to_owned();
         let sheets_metadata = sheets.sheets_metadata().to_owned();
 

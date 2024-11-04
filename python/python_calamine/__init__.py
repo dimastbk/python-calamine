@@ -6,6 +6,7 @@ from ._python_calamine import (
     SheetMetadata,
     SheetTypeEnum,
     SheetVisibleEnum,
+    WorkbookClosed,
     WorksheetNotFound,
     XmlError,
     ZipError,
@@ -23,5 +24,6 @@ __all__ = (
     "WorksheetNotFound",
     "XmlError",
     "ZipError",
+    "WorkbookClosed",
     "load_workbook",
 )

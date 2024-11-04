@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import datetime
 import enum
 import os
+import types
 import typing
 
 @typing.type_check_only
@@ -65,11 +67,10 @@ class CalamineSheet:
     ]:
         """Retunrning data from sheet as list of lists.
 
-        Parameters
-        ----------
-        skip_empty_area : bool
-            By default, calamine skips empty rows/cols before data.
-            For suppress this behaviour, set `skip_empty_area` to `False`.
+        Args:
+            skip_empty_area (bool):
+                By default, calamine skips empty rows/cols before data.
+                For suppress this behaviour, set `skip_empty_area` to `False`.
         """
 
     def iter_rows(
@@ -89,7 +90,7 @@ class CalamineSheet:
         """Retunrning data from sheet as iterator of lists."""
 
 @typing.final
-class CalamineWorkbook:
+class CalamineWorkbook(contextlib.AbstractContextManager):
     path: str | None
     sheet_names: list[str]
     sheets_metadata: list[SheetMetadata]
@@ -99,49 +100,83 @@ class CalamineWorkbook:
     ) -> "CalamineWorkbook":
         """Determining type of pyobject and reading from it.
 
-        Parameters
-        ----------
-        path_or_filelike :
-            - path (string),
-            - pathlike (pathlib.Path),
-            - IO (must imlpement read/seek methods).
+        Args:
+            path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
         """
 
     @classmethod
     def from_path(cls, path: str | os.PathLike) -> "CalamineWorkbook":
         """Reading file from path.
 
-        Parameters
-        ----------
-        path : path (string)."""
+        Args:
+            path (str | os.PathLike): path to file.
+        """
 
     @classmethod
     def from_filelike(cls, filelike: ReadBuffer) -> "CalamineWorkbook":
         """Reading file from IO.
 
-        Parameters
-        ----------
-        filelike : IO (must imlpement read/seek methods).
+        Args:
+            filelike : IO (must imlpement read/seek methods).
         """
 
-    def get_sheet_by_name(self, name: str) -> CalamineSheet: ...
-    def get_sheet_by_index(self, index: int) -> CalamineSheet: ...
+    def close(self) -> None:
+        """Close the workbook.
+
+        Drop internal rust structure from workbook (and close the file under the hood).
+        `get_sheet_by_name`/`get_sheet_by_index` will raise WorkbookClosed after calling that method.
+
+        Raises:
+            WorkbookClosed: If workbook already closed.
+        """
+
+    def __enter__(self) -> "CalamineWorkbook": ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None: ...
+    def get_sheet_by_name(self, name: str) -> CalamineSheet:
+        """Get worksheet by name.
+
+        Args:
+            name(str): name of worksheet
+
+        Returns:
+            CalamineSheet
+
+        Raises:
+            WorkbookClosed: If workbook already closed.
+            WorksheetNotFound: If worksheet not found in workbook.
+        """
+
+    def get_sheet_by_index(self, index: int) -> CalamineSheet:
+        """Get worksheet by index.
+
+        Args:
+            index(int): index of worksheet
+
+        Returns:
+            CalamineSheet
+
+        Raises:
+            WorkbookClosed: If workbook already closed.
+            WorksheetNotFound: If worksheet not found in workbook.
+        """
 
 class CalamineError(Exception): ...
 class PasswordError(CalamineError): ...
 class WorksheetNotFound(CalamineError): ...
 class XmlError(CalamineError): ...
 class ZipError(CalamineError): ...
+class WorkbookClosed(CalamineError): ...
 
 def load_workbook(
     path_or_filelike: str | os.PathLike | ReadBuffer,
 ) -> CalamineWorkbook:
     """Determining type of pyobject and reading from it.
 
-    Parameters
-    ----------
-    path_or_filelike :
-        - path (string),
-        - pathlike (pathlib.Path),
-        - IO (must imlpement read/seek methods).
+    Args:
+        path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
     """
