@@ -40,9 +40,10 @@ jobs:
           - python-version: "3.13"
             pandas-version: "2.2.*"
           # https://github.com/pandas-dev/pandas/issues/60016
-          - python-version: "3.13"
-            pandas-version: "none"
-            disable-gil: true
+          # disable until pyo3 0.23
+          # - python-version: "3.13"
+          #   pandas-version: "none"
+          #   disable-gil: true
 
     runs-on: ubuntu-latest
 
