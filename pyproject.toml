@@ -12,6 +12,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
+dependencies = [
+    "packaging~=23.1",
+]
 
 [tool.isort]
 include_trailing_comma = true
@@ -35,10 +38,6 @@ python-source = "python"
 
 [tool.poetry]
 package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.8"
-packaging = "^23.1"
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.7.4"
