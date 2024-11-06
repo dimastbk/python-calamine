@@ -13,7 +13,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "packaging~=24.1",
+    "packaging>=23.1",
 ]
 
 [tool.isort]
