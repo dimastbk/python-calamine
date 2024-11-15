@@ -15,7 +15,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 calamine = { version = "0.26.1", features = ["dates"] }
-pyo3 = { version = "0.22.6", features = [
+pyo3 = { version = "0.23.0", features = [
     "extension-module",
     "chrono",
     "generate-import-lib",
