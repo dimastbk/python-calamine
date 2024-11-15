@@ -24,4 +24,4 @@ chrono = { version = "0.4.38", features = ["serde"] }
 pyo3-file = { git = "https://github.com/dimastbk/pyo3-file", rev = "6da7c16902dde695a7b88fd83ce78ef4406e9bb7" }
 
 [build-dependencies]
-pyo3-build-config = "0.22.5"
+pyo3-build-config = "0.23.0"
