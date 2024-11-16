@@ -20,14 +20,11 @@ fn _python_calamine(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<SheetMetadata>()?;
     m.add_class::<SheetTypeEnum>()?;
     m.add_class::<SheetVisibleEnum>()?;
-    m.add("CalamineError", py.get_type_bound::<CalamineError>())?;
-    m.add("PasswordError", py.get_type_bound::<PasswordError>())?;
-    m.add(
-        "WorksheetNotFound",
-        py.get_type_bound::<WorksheetNotFound>(),
-    )?;
-    m.add("XmlError", py.get_type_bound::<XmlError>())?;
-    m.add("ZipError", py.get_type_bound::<ZipError>())?;
-    m.add("WorkbookClosed", py.get_type_bound::<WorkbookClosed>())?;
+    m.add("CalamineError", py.get_type::<CalamineError>())?;
+    m.add("PasswordError", py.get_type::<PasswordError>())?;
+    m.add("WorksheetNotFound", py.get_type::<WorksheetNotFound>())?;
+    m.add("XmlError", py.get_type::<XmlError>())?;
+    m.add("ZipError", py.get_type::<ZipError>())?;
+    m.add("WorkbookClosed", py.get_type::<WorkbookClosed>())?;
     Ok(())
 }
