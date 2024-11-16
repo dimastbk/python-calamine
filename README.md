@@ -66,3 +66,22 @@ read_excel("file.xlsx", engine="calamine")
 ```
 
 Also, you can find additional examples in [tests](https://github.com/dimastbk/python-calamine/blob/master/tests/test_base.py).
+
+### Development
+
+You'll need rust [installed](https://rustup.rs/).
+
+```python
+# clone this repo or your fork
+git clone git@github.com:dimastbk/python-calamine.git
+cd python-calamine
+# create a new virtual env
+python3 -m venv env
+source env/bin/activate
+# install dev dependencies and install python-calamine
+pip install -e .[dev]
+# lint code
+pre-commit run --all-files
+# test code
+pytest
+```

@@ -12,8 +12,16 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-dependencies = [
-    "packaging>=23.1",
+dependencies = ["packaging>=23.1"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+  "maturin~=1.0",
+  "pre-commit~=3.0",
+  "pytest~=8.0",
+  "pandas[excel]~=2.0",
+  "numpy~=1.0",
 ]
 
 [tool.isort]
@@ -35,13 +43,3 @@ build-backend = "maturin"
 [tool.maturin]
 module-name = "python_calamine._python_calamine"
 python-source = "python"
-
-[tool.poetry]
-package-mode = false
-
-[tool.poetry.group.dev.dependencies]
-maturin = "^1.7.4"
-pre-commit = "^3.0.1"
-pytest = "^8.0.0"
-pandas = {version = "^2.0.0", extras = ["excel"]}
-numpy = "^1.0.0"
