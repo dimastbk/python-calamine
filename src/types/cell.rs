@@ -16,24 +16,22 @@ pub enum CellValue {
     Empty,
 }
 
-impl IntoPy<PyObject> for CellValue {
-    fn into_py(self, py: Python) -> PyObject {
-        self.to_object(py)
-    }
-}
+impl<'py> IntoPyObject<'py> for CellValue {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
 
-impl ToPyObject for CellValue {
-    fn to_object(&self, py: Python<'_>) -> PyObject {
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
-            CellValue::Int(v) => v.to_object(py),
-            CellValue::Float(v) => v.to_object(py),
-            CellValue::String(v) => v.to_object(py),
-            CellValue::Bool(v) => v.to_object(py),
-            CellValue::Time(v) => v.to_object(py),
-            CellValue::Date(v) => v.to_object(py),
-            CellValue::DateTime(v) => v.to_object(py),
-            CellValue::Timedelta(v) => v.to_object(py),
-            CellValue::Empty => "".to_object(py),
+            CellValue::Int(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Float(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::String(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Bool(v) => Ok(v.into_pyobject(py)?.to_owned().into_any()),
+            CellValue::Time(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Date(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Timedelta(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Empty => Ok("".into_pyobject(py)?.into_any()),
         }
     }
 }

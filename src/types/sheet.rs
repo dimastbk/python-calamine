@@ -98,11 +98,23 @@ impl SheetMetadata {
         ))
     }
 
-    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyResult<Py<PyAny>> {
         match op {
-            CompareOp::Eq => self.eq(other).into_py(py),
-            CompareOp::Ne => self.ne(other).into_py(py),
-            _ => py.NotImplemented(),
+            CompareOp::Eq => Ok(self
+                .eq(other)
+                .into_pyobject(py)
+                .map_err(Into::<PyErr>::into)?
+                .to_owned()
+                .into_any()
+                .unbind()),
+            CompareOp::Ne => Ok(self
+                .ne(other)
+                .into_pyobject(py)
+                .map_err(Into::<PyErr>::into)?
+                .to_owned()
+                .into_any()
+                .unbind()),
+            _ => Ok(py.NotImplemented()),
         }
     }
 }
@@ -189,12 +201,13 @@ impl CalamineSheet {
             Arc::clone(&slf.range)
         };
 
-        Ok(PyList::new_bound(
+        PyList::new(
             slf.py(),
             range.rows().take(nrows as usize).map(|row| {
-                PyList::new_bound(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
+                PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)).unwrap()
             }),
-        ))
+        )
+        .map_err(Into::into)
     }
 
     fn iter_rows(&self) -> CalamineCellIterator {
@@ -238,14 +251,18 @@ impl CalamineCellIterator {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<Bound<'_, PyList>> {
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<Bound<'_, PyList>>> {
         slf.position += 1;
         if slf.position > slf.start.0 {
-            slf.iter.next().map(|row| {
-                PyList::new_bound(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
-            })
+            slf.iter
+                .next()
+                .map(|row| {
+                    PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
+                        .map_err(Into::into)
+                })
+                .transpose()
         } else {
-            Some(PyList::new_bound(slf.py(), slf.empty_row.clone()))
+            Some(PyList::new(slf.py(), slf.empty_row.clone()).map_err(Into::into)).transpose()
         }
     }
 }
