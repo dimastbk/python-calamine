@@ -7,8 +7,12 @@ from typing import TYPE_CHECKING, Union, cast
 import pandas as pd
 from packaging.version import Version, parse
 from pandas._typing import Scalar
-from pandas.compat._optional import import_optional_dependency
-from pandas.core.shared_docs import _shared_docs
+from pandas.compat._optional import (  # type:ignore[import-untyped] # missing in pandas-stubs
+    import_optional_dependency,
+)
+from pandas.core.shared_docs import (  # type:ignore[import-untyped] # missing in pandas-stubs
+    _shared_docs,
+)
 from pandas.io.excel import ExcelFile
 from pandas.io.excel._base import (  # type:ignore[attr-defined] # missing in pandas-stubs
     BaseExcelReader,
