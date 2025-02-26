@@ -34,6 +34,9 @@ jobs:
           # https://github.com/pandas-dev/pandas/issues/42509
           - python-version: "pypy3.10"
             pandas-version: "none"
+          # https://github.com/pandas-dev/pandas/issues/42509
+          - python-version: "pypy3.11"
+            pandas-version: "none"
           - python-version: "3.13"
             pandas-version: "2.2.*"
           # https://github.com/pandas-dev/pandas/issues/60016
@@ -229,7 +232,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
-          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10 pypy3.11' }}
           rust-toolchain: stable
 
       - run: ${{ matrix.ls || 'ls -lh' }} dist/
