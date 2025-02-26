@@ -21,7 +21,7 @@ pyo3 = { version = "0.23.5", features = [
     "generate-import-lib",
 ] }
 chrono = { version = "0.4.38", features = ["serde"] }
-pyo3-file = { git = "https://github.com/dimastbk/pyo3-file", rev = "baffde5aba70474f899a3f5379940cbf4a28e52c" }
+pyo3-file = "0.10.0"
 
 [build-dependencies]
 pyo3-build-config = "0.23.5"
