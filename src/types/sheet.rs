@@ -207,7 +207,6 @@ impl CalamineSheet {
                 PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)).unwrap()
             }),
         )
-        .map_err(Into::into)
     }
 
     fn iter_rows(&self) -> CalamineCellIterator {
@@ -256,13 +255,10 @@ impl CalamineCellIterator {
         if slf.position > slf.start.0 {
             slf.iter
                 .next()
-                .map(|row| {
-                    PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))
-                        .map_err(Into::into)
-                })
+                .map(|row| PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)))
                 .transpose()
         } else {
-            Some(PyList::new(slf.py(), slf.empty_row.clone()).map_err(Into::into)).transpose()
+            Some(PyList::new(slf.py(), slf.empty_row.clone())).transpose()
         }
     }
 }
