@@ -18,7 +18,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 dev = [
   "maturin~=1.0",
-  "pre-commit~=3.0",
+  "pre-commit~=4.1",
   "pytest~=8.0",
   "pandas[excel]~=2.0",
   "numpy~=1.0",
