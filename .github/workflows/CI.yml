@@ -36,9 +36,8 @@ jobs:
             pandas-version: "none"
           - python-version: "3.13"
             pandas-version: "2.2.*"
-          # https://github.com/pandas-dev/pandas/issues/60016
           - python-version: "3.13"
-            pandas-version: "none"
+            pandas-version: "2.2.*"
             disable-gil: true
 
     runs-on: ubuntu-latest
@@ -128,10 +127,7 @@ jobs:
             py
             ${{ env.pythonLocation }}
 
-      - run: pip install pre-commit
-        if: steps.cache-py.outputs.cache-hit != 'true'
-
-      - run: pip install .
+      - run: pip install .[dev]
         if: steps.cache-py.outputs.cache-hit != 'true'
 
       - run: pip freeze
