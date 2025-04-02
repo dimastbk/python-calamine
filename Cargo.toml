@@ -1,6 +1,6 @@
 [package]
 name = "python-calamine"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Dmitriy <dimastbk@proton.me>"]
 description = "Python binding for Rust's library for reading excel and odf file - calamine"
 edition = "2021"
