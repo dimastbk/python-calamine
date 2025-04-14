@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use calamine::{Data, Range, Rows, SheetType, SheetVisible};
+use calamine::{Data, Dimensions, Range, Rows, SheetType, SheetVisible};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
@@ -68,6 +68,8 @@ impl From<SheetVisible> for SheetVisibleEnum {
     }
 }
 
+type MergedCellRange = ((u32, u32), (u32, u32));
+
 #[pyclass]
 #[derive(Clone, PartialEq)]
 pub struct SheetMetadata {
@@ -132,13 +134,19 @@ pub struct CalamineSheet {
     #[pyo3(get)]
     name: String,
     range: Arc<Range<Data>>,
+    merged_cell_ranges: Option<Vec<Dimensions>>,
 }
 
 impl CalamineSheet {
-    pub fn new(name: String, range: Range<Data>) -> Self {
+    pub fn new(
+        name: String,
+        range: Range<Data>,
+        merged_cell_ranges: Option<Vec<Dimensions>>,
+    ) -> Self {
         CalamineSheet {
             name,
             range: Arc::new(range),
+            merged_cell_ranges,
         }
     }
 }
@@ -211,6 +219,13 @@ impl CalamineSheet {
 
     fn iter_rows(&self) -> CalamineCellIterator {
         CalamineCellIterator::from_range(Arc::clone(&self.range))
+    }
+
+    #[getter]
+    fn merged_cell_ranges(slf: PyRef<'_, Self>) -> Option<Vec<MergedCellRange>> {
+        slf.merged_cell_ranges
+            .as_ref()
+            .map(|r| r.iter().map(|d| (d.start, d.end)).collect())
     }
 }
 

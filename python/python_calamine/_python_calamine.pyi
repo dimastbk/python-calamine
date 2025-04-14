@@ -12,6 +12,11 @@ class ReadBuffer(typing.Protocol):
     def seek(self, __offset: int, __whence: int = ...) -> int: ...
     def read(self, __size: int = ...) -> bytes | None: ...
 
+@typing.type_check_only
+class MergedCellRange(typing.NamedTuple):
+    start: tuple[int, int]
+    end: tuple[int, int]
+
 @typing.final
 class SheetTypeEnum(enum.Enum):
     WorkSheet = ...
@@ -88,6 +93,13 @@ class CalamineSheet:
         ]
     ]:
         """Retunrning data from sheet as iterator of lists."""
+
+    @property
+    def merged_cell_ranges(self) -> list[MergedCellRange] | None:
+        """Return a copy of merged cell ranges.
+
+        Support only for xlsx/xls. For other formats return the None.
+        """
 
 @typing.final
 class CalamineWorkbook(contextlib.AbstractContextManager):

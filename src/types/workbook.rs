@@ -2,7 +2,9 @@ use std::fs::File;
 use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
 
-use calamine::{open_workbook_auto, open_workbook_auto_from_rs, Reader, Sheets};
+use calamine::{
+    open_workbook_auto, open_workbook_auto_from_rs, Error as CalamineCrateError, Reader, Sheets,
+};
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyType};
@@ -41,6 +43,35 @@ impl SheetsEnum {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name).map_err(Error::Calamine),
             SheetsEnum::FileLike(f) => f.worksheet_range(name).map_err(Error::Calamine),
+            SheetsEnum::None => Err(Error::WorkbookClosed),
+        }
+    }
+
+    fn worksheet_merge_cells(
+        &mut self,
+        name: &str,
+    ) -> Result<Option<Vec<calamine::Dimensions>>, Error> {
+        match self {
+            SheetsEnum::File(f) => match f {
+                Sheets::Xls(xls_f) => Ok(xls_f.worksheet_merge_cells(name)),
+                Sheets::Xlsx(xlsx_f) => xlsx_f
+                    .worksheet_merge_cells(name)
+                    .transpose()
+                    .map_err(CalamineCrateError::Xlsx)
+                    .map_err(Error::Calamine)
+                    .map(|inner| inner.or(Some(Vec::new()))),
+                _ => Ok(None),
+            },
+            SheetsEnum::FileLike(f) => match f {
+                Sheets::Xls(xls_f) => Ok(xls_f.worksheet_merge_cells(name)),
+                Sheets::Xlsx(xlsx_f) => xlsx_f
+                    .worksheet_merge_cells(name)
+                    .transpose()
+                    .map_err(CalamineCrateError::Xlsx)
+                    .map_err(Error::Calamine)
+                    .map(|inner| inner.or(Some(Vec::new()))),
+                _ => Ok(None),
+            },
             SheetsEnum::None => Err(Error::WorkbookClosed),
         }
     }
@@ -192,7 +223,12 @@ impl CalamineWorkbook {
 
     fn get_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineSheet> {
         let range = self.sheets.worksheet_range(name).map_err(err_to_py)?;
-        Ok(CalamineSheet::new(name.to_owned(), range))
+        let merge_cells_range = self.sheets.worksheet_merge_cells(name).map_err(err_to_py)?;
+        Ok(CalamineSheet::new(
+            name.to_owned(),
+            range,
+            merge_cells_range,
+        ))
     }
 
     fn get_sheet_by_index(&mut self, index: usize) -> PyResult<CalamineSheet> {
