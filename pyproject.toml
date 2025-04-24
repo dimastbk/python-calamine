@@ -19,9 +19,10 @@ dynamic = ["version"]
 dev = [
   "maturin~=1.0",
   "pre-commit~=3.0",
+  "mypy~=1.13",
   "pytest~=8.0",
-  "pandas[excel]~=2.0",
-  "numpy~=1.0",
+  "pandas[excel]~=2.2",
+  "pandas-stubs~=2.2",
 ]
 
 [tool.isort]
@@ -31,6 +32,7 @@ multi_line_output = 3
 profile = "black"
 
 [tool.mypy]
+files = ["python"]
 python_version = "3.8"
 ignore_missing_imports = false
 disallow_untyped_defs = true
