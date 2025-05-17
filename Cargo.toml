@@ -15,7 +15,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 calamine = { git = "https://github.com/tafia/calamine.git", rev = "5cda5c734661f656bdfb7ac7a1b95e77bf89aa09", features = ["dates"] }
-pyo3 = { version = "0.24.0", features = [
+pyo3 = { version = "0.25.0", features = [
     "extension-module",
     "chrono",
     "generate-import-lib",
