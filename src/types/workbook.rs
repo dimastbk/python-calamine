@@ -92,7 +92,7 @@ pub struct CalamineWorkbook {
 impl CalamineWorkbook {
     fn __repr__(&self) -> PyResult<String> {
         match &self.path {
-            Some(path) => Ok(format!("CalamineWorkbook(path='{}')", path)),
+            Some(path) => Ok(format!("CalamineWorkbook(path='{path}')")),
             None => Ok("CalamineWorkbook(path='bytes')".to_string()),
         }
     }
@@ -235,7 +235,7 @@ impl CalamineWorkbook {
         let name = self
             .sheet_names
             .get(index)
-            .ok_or_else(|| WorksheetNotFound::new_err(format!("Worksheet '{}' not found", index)))?
+            .ok_or_else(|| WorksheetNotFound::new_err(format!("Worksheet '{index}' not found")))?
             .to_string();
         self.get_sheet_by_name(&name)
     }

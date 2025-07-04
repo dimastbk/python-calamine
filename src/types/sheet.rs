@@ -25,7 +25,7 @@ pub enum SheetTypeEnum {
 
 impl Display for SheetTypeEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SheetTypeEnum.{:?}", self)
+        write!(f, "SheetTypeEnum.{self:?}")
     }
 }
 
@@ -54,7 +54,7 @@ pub enum SheetVisibleEnum {
 
 impl Display for SheetVisibleEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SheetVisibleEnum.{:?}", self)
+        write!(f, "SheetVisibleEnum.{self:?}")
     }
 }
 
