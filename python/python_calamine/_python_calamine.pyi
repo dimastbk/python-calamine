@@ -89,6 +89,18 @@ class CalamineSheet:
     ]:
         """Retunrning data from sheet as iterator of lists."""
 
+    @property
+    def merged_cell_ranges(
+        self,
+    ) -> list[tuple[tuple[int, int], tuple[int, int]]] | None:
+        """Return a copy of merged cell ranges.
+
+        Support only for xlsx/xls.
+
+        Returns:
+            list of merged cell ranges (tuple[start coordinate, end coordinate]) or None for unsuported format
+        """
+
 @typing.final
 class CalamineWorkbook(contextlib.AbstractContextManager):
     path: str | None

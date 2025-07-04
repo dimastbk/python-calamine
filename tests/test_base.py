@@ -15,7 +15,7 @@ PATH = Path(__file__).parent / "data"
 
 
 def test_ods_read():
-    names = ["Sheet1", "Sheet2"]
+    names = ["Sheet1", "Sheet2", "Merged Cells"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
         [
@@ -59,9 +59,11 @@ def test_ods_read():
     assert [] == reader.get_sheet_by_index(1).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
 
+    assert None is reader.get_sheet_by_name("Merged Cells").merged_cell_ranges
+
 
 def test_xls_read():
-    names = ["Sheet1", "Sheet2"]
+    names = ["Sheet1", "Sheet2", "Merged Cells"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
         [
@@ -101,9 +103,13 @@ def test_xls_read():
     assert [] == reader.get_sheet_by_index(1).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
 
+    assert [((0, 0), (1, 0)), ((0, 1), (1, 1))] == reader.get_sheet_by_name(
+        "Merged Cells"
+    ).merged_cell_ranges
+
 
 def test_xlsb_read():
-    names = ["Sheet1", "Sheet2", "Sheet3"]
+    names = ["Sheet1", "Sheet2", "Sheet3", "Merged Cells"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
         [
@@ -143,9 +149,11 @@ def test_xlsb_read():
     assert [] == reader.get_sheet_by_index(1).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
 
+    assert None is reader.get_sheet_by_name("Merged Cells").merged_cell_ranges
+
 
 def test_xlsx_read():
-    names = ["Sheet1", "Sheet2", "Sheet3"]
+    names = ["Sheet1", "Sheet2", "Sheet3", "Merged Cells"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
         [
@@ -185,9 +193,13 @@ def test_xlsx_read():
     assert [] == reader.get_sheet_by_index(1).to_python()
     assert [] == reader.get_sheet_by_index(1).to_python(skip_empty_area=False)
 
+    assert [((0, 0), (1, 0)), ((0, 1), (1, 1))] == reader.get_sheet_by_name(
+        "Merged Cells"
+    ).merged_cell_ranges
+
 
 def test_xlsx_iter_rows():
-    names = ["Sheet1", "Sheet2", "Sheet3"]
+    names = ["Sheet1", "Sheet2", "Sheet3", "Merged Cells"]
     data = [
         ["", "", "", "", "", "", "", "", "", ""],
         [
