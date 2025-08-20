@@ -14,7 +14,6 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["packaging>=23.1"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -22,8 +21,7 @@ dev = [
   "maturin~=1.0",
   "pre-commit~=3.0",
   "pytest~=8.0",
-  "pandas[excel]~=2.0",
-  "numpy~=1.0",
+  "pandas[excel]~=2.2",
 ]
 
 [tool.isort]
