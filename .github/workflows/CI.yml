@@ -13,33 +13,29 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }} ${{ matrix.disable-gil && 'free-threaded' || '' }}
+    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }}
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
+          - "3.13"
+          - "3.14"
         pandas-version:
-          - "2.1.*"
           - "2.2.*"
+          - "2.3.*"
         include:
-          - python-version: "3.8"
-            pandas-version: "none"
           # https://github.com/pandas-dev/pandas/issues/42509
-          - python-version: "pypy3.9"
+          - python-version: "pypy3.11"
             pandas-version: "none"
-          # https://github.com/pandas-dev/pandas/issues/42509
-          - python-version: "pypy3.10"
-            pandas-version: "none"
-          - python-version: "3.13"
-            pandas-version: "2.2.*"
           # https://github.com/pandas-dev/pandas/issues/60016
-          - python-version: "3.13"
+          - python-version: "3.13t"
             pandas-version: "none"
-            disable-gil: true
+          # https://github.com/pandas-dev/pandas/issues/60016
+          - python-version: "3.14t"
+            pandas-version: "none"
 
     runs-on: ubuntu-latest
 
@@ -67,23 +63,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
 
-      - name: set up python (free-threaded)
-        uses: deadsnakes/action@v3.2.0
-        if: "${{ matrix.disable-gil }}"
-        with:
-          python-version: ${{ matrix.python-version }}
-          nogil: ${{ matrix.disable-gil }}
-
       - id: cache-py
         name: cache python
         uses: actions/cache@v4
-        if: "${{ !matrix.disable-gil }}"
         with:
           path: ${{ env.pythonLocation }}
           key: >
             py
             ${{ runner.os }}
-            ${{ env.pythonLocation }}
+            ${{ matrix.python-version }}
+            ${{ matrix.pandas-version }}
 
       - run: |
           if [ ${{ matrix.pandas-version }} == 'none' ]; then
@@ -155,7 +144,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: [ubuntu, macos]
         target: [x86_64, aarch64]
         manylinux: [auto]
         include:
@@ -163,15 +152,17 @@ jobs:
             platform: linux
           - os: windows
             ls: dir
+            target: x86_64
+            interpreter: 3.10 3.11 3.12 3.13 3.13t
           - os: windows
             ls: dir
             target: i686
             python-architecture: x86
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
+            interpreter: 3.10 3.11 3.12 3.13 3.13t
           - os: windows
             ls: dir
             target: aarch64
-            interpreter: 3.11 3.12 3.13
+            interpreter: 3.11 3.12 3.13 3.13t
           - os: ubuntu
             platform: linux
             target: i686
@@ -181,7 +172,7 @@ jobs:
           - os: ubuntu
             platform: linux
             target: armv7
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
             # musllinux
           - os: ubuntu
             platform: linux
@@ -194,15 +185,11 @@ jobs:
           - os: ubuntu
             platform: linux
             target: ppc64le
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           - os: ubuntu
             platform: linux
             target: s390x
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-        exclude:
-          # Windows on arm64 only supports Python 3.11+
-          - os: windows
-            target: aarch64
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
 
     runs-on: ${{ matrix.os }}-latest
     steps:
@@ -229,7 +216,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
-          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11' }}
           rust-toolchain: stable
 
       - run: ${{ matrix.ls || 'ls -lh' }} dist/

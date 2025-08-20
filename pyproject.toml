@@ -2,20 +2,18 @@
 name = "python-calamine"
 description = "Python binding for Rust's library for reading excel and odf file - calamine"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Dmitriy", email = "dimastbk@proton.me" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Rust",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["packaging>=23.1"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -23,8 +21,7 @@ dev = [
   "maturin~=1.0",
   "pre-commit~=3.0",
   "pytest~=8.0",
-  "pandas[excel]~=2.0",
-  "numpy~=1.0",
+  "pandas[excel]~=2.2",
 ]
 
 [tool.isort]
@@ -34,7 +31,7 @@ multi_line_output = 3
 profile = "black"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 ignore_missing_imports = false
 disallow_untyped_defs = true
 check_untyped_defs = true

@@ -50,20 +50,7 @@ workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").t
 # ]
 ```
 
-Also, you can use monkeypatch for pandas for use this library as engine in `read_excel()` (only pandas 2.0 and 2.1 are supported).
 Pandas 2.2 and above have built-in support of python-calamine.
-```python
-from pandas import read_excel
-from python_calamine.pandas import pandas_monkeypatch
-
-
-pandas_monkeypatch()
-
-read_excel("file.xlsx", engine="calamine")
-#            1   2   3   4   5   6   7
-# 0          1   2   3   4   5   6   7
-# 1          1   2   3   4   5   6   7
-```
 
 Also, you can find additional examples in [tests](https://github.com/dimastbk/python-calamine/blob/master/tests/test_base.py).
 
