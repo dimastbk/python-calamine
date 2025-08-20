@@ -24,14 +24,12 @@ jobs:
           - "3.13"
           - "3.14"
         pandas-version:
-          - "2.1.*"
           - "2.2.*"
+          - "2.3.*"
         include:
           # https://github.com/pandas-dev/pandas/issues/42509
           - python-version: "pypy3.11"
             pandas-version: "none"
-          - python-version: "3.13"
-            pandas-version: "2.2.*"
           # https://github.com/pandas-dev/pandas/issues/60016
           - python-version: "3.13"
             pandas-version: "none"

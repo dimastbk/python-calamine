@@ -1,8 +1,6 @@
-from importlib.metadata import version
 from pathlib import Path
 
 import pytest
-from packaging.version import Version, parse
 
 try:
     import pandas as pd
@@ -12,17 +10,6 @@ except ImportError:
     tm = None
 
 PATH = Path(__file__).parent / "data"
-
-
-@pytest.fixture(scope="module", autouse=True)
-def pandas_monkeypatch():
-    if parse(version("pandas")) >= Version("2.2.0"):
-        yield
-    else:
-        from python_calamine.pandas import pandas_monkeypatch
-
-        pandas_monkeypatch()
-        yield
 
 
 @pytest.mark.skipif(not pd, reason="pandas is required")

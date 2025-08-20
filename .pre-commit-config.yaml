@@ -38,8 +38,6 @@ repos:
       rev: v1.8.0
       hooks:
         - id: mypy
-          additional_dependencies:
-            - pandas-stubs
           exclude: ^tests/.*$
     -   repo: local
         hooks:
