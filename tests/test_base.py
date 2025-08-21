@@ -17,7 +17,7 @@ PATH = Path(__file__).parent / "data"
 def test_ods_read():
     names = ["Sheet1", "Sheet2", "Merged Cells"]
     data = [
-        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", "", "", ""],
         [
             "String",
             1.0,
@@ -31,6 +31,8 @@ def test_ods_read():
             # duration (255:10:10) isn't supported
             # see https://github.com/tafia/calamine/pull/288 and https://github.com/chronotope/chrono/issues/579
             "PT255H10M10S",
+            "20010-10-10",
+            "20010-10-10T10:10:10",
         ],
     ]
 
@@ -53,6 +55,8 @@ def test_ods_read():
             # duration (255:10:10) isn't supported
             # see https://github.com/tafia/calamine/pull/288 and https://github.com/chronotope/chrono/issues/579
             "PT255H10M10S",
+            "20010-10-10",
+            "20010-10-10T10:10:10",
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
@@ -65,7 +69,7 @@ def test_ods_read():
 def test_xls_read():
     names = ["Sheet1", "Sheet2", "Merged Cells"]
     data = [
-        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", "", "", ""],
         [
             "String",
             1,
@@ -77,6 +81,8 @@ def test_xls_read():
             time(10, 10, 10),
             timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
             timedelta(hours=255, minutes=10, seconds=10),
+            6614826.0,
+            6614826.423726852,
         ],
     ]
 
@@ -97,6 +103,8 @@ def test_xls_read():
             time(10, 10, 10),
             timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
             timedelta(hours=255, minutes=10, seconds=10),
+            6614826.0,
+            6614826.423726852,
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
@@ -155,7 +163,7 @@ def test_xlsb_read():
 def test_xlsx_read():
     names = ["Sheet1", "Sheet2", "Sheet3", "Merged Cells"]
     data = [
-        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", "", "", ""],
         [
             "String",
             1,
@@ -167,6 +175,8 @@ def test_xlsx_read():
             time(10, 10, 10),
             timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
             timedelta(hours=255, minutes=10, seconds=10),
+            6614826.0,
+            6614826.42372685,
         ],
     ]
 
@@ -187,6 +197,8 @@ def test_xlsx_read():
             time(10, 10, 10),
             timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
             timedelta(hours=255, minutes=10, seconds=10),
+            6614826.0,
+            6614826.42372685,
         ],
     ]
     assert data_skipped == reader.get_sheet_by_index(0).to_python()
@@ -201,7 +213,7 @@ def test_xlsx_read():
 def test_xlsx_iter_rows():
     names = ["Sheet1", "Sheet2", "Sheet3", "Merged Cells"]
     data = [
-        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", "", "", ""],
         [
             "String",
             1,
@@ -213,6 +225,8 @@ def test_xlsx_iter_rows():
             time(10, 10, 10),
             timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
             timedelta(hours=255, minutes=10, seconds=10),
+            6614826.0,
+            6614826.42372685,
         ],
     ]
 
