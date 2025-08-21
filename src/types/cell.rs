@@ -1,7 +1,11 @@
 use std::convert::From;
 
 use calamine::DataType;
+use chrono::{Datelike, NaiveDateTime};
 use pyo3::prelude::*;
+
+const MINYEAR: i32 = 1;
+const MAXYEAR: i32 = 9999;
 
 #[derive(Debug, Clone)]
 pub enum CellValue {
@@ -16,6 +20,14 @@ pub enum CellValue {
     Empty,
 }
 
+fn check_year_range<T: Datelike>(value: T) -> Option<T> {
+    if value.year() < MINYEAR || value.year() > MAXYEAR {
+        None
+    } else {
+        Some(value)
+    }
+}
+
 impl<'py> IntoPyObject<'py> for CellValue {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
@@ -28,8 +40,18 @@ impl<'py> IntoPyObject<'py> for CellValue {
             CellValue::String(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Bool(v) => Ok(v.into_pyobject(py)?.to_owned().into_any()),
             CellValue::Time(v) => Ok(v.into_pyobject(py)?.into_any()),
-            CellValue::Date(v) => Ok(v.into_pyobject(py)?.into_any()),
-            CellValue::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Date(v) => match check_year_range(v) {
+                Some(v) => Ok(v.into_pyobject(py)?.into_any()),
+                None => Ok(NaiveDateTime::from(v)
+                    .and_utc()
+                    .timestamp()
+                    .into_pyobject(py)?
+                    .into_any()),
+            },
+            CellValue::DateTime(v) => match check_year_range(v) {
+                Some(v) => Ok(v.into_pyobject(py)?.into_any()),
+                None => Ok(v.and_utc().timestamp().into_pyobject(py)?.into_any()),
+            },
             CellValue::Timedelta(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Empty => Ok("".into_pyobject(py)?.into_any()),
         }
