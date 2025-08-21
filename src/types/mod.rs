@@ -6,5 +6,7 @@ pub use cell::CellValue;
 pub use errors::{
     CalamineError, Error, PasswordError, WorkbookClosed, WorksheetNotFound, XmlError, ZipError,
 };
-pub use sheet::{CalamineSheet, SheetMetadata, SheetTypeEnum, SheetVisibleEnum};
+pub use sheet::{
+    CalamineFormulaIterator, CalamineSheet, SheetMetadata, SheetTypeEnum, SheetVisibleEnum,
+};
 pub use workbook::CalamineWorkbook;

@@ -3,13 +3,19 @@ use pyo3::prelude::*;
 mod types;
 mod utils;
 use crate::types::{
-    CalamineError, CalamineSheet, CalamineWorkbook, CellValue, Error, PasswordError, SheetMetadata,
-    SheetTypeEnum, SheetVisibleEnum, WorkbookClosed, WorksheetNotFound, XmlError, ZipError,
+    CalamineError, CalamineFormulaIterator, CalamineSheet, CalamineWorkbook, CellValue, Error,
+    PasswordError, SheetMetadata, SheetTypeEnum, SheetVisibleEnum, WorkbookClosed,
+    WorksheetNotFound, XmlError, ZipError,
 };
 
 #[pyfunction]
-fn load_workbook(py: Python, path_or_filelike: PyObject) -> PyResult<CalamineWorkbook> {
-    CalamineWorkbook::from_object(py, path_or_filelike)
+#[pyo3(signature = (path_or_filelike, read_formulas=false))]
+fn load_workbook(
+    py: Python,
+    path_or_filelike: PyObject,
+    read_formulas: bool,
+) -> PyResult<CalamineWorkbook> {
+    CalamineWorkbook::from_object(py, path_or_filelike, read_formulas)
 }
 
 #[pymodule(gil_used = false)]
@@ -17,6 +23,7 @@ fn _python_calamine(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(load_workbook, m)?)?;
     m.add_class::<CalamineWorkbook>()?;
     m.add_class::<CalamineSheet>()?;
+    m.add_class::<CalamineFormulaIterator>()?;
     m.add_class::<SheetMetadata>()?;
     m.add_class::<SheetTypeEnum>()?;
     m.add_class::<SheetVisibleEnum>()?;
