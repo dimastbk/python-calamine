@@ -1,7 +1,15 @@
 use std::convert::From;
 
 use calamine::DataType;
+use chrono::Datelike;
 use pyo3::prelude::*;
+
+/// https://docs.python.org/3/library/datetime.html#constants
+/// The smallest year number allowed in a date or datetime object. MINYEAR is 1.
+const MINYEAR: i32 = 1;
+
+/// The largest year number allowed in a date or datetime object. MAXYEAR is 9999.
+const MAXYEAR: i32 = 9999;
 
 #[derive(Debug, Clone)]
 pub enum CellValue {
@@ -14,6 +22,14 @@ pub enum CellValue {
     Timedelta(chrono::Duration),
     Bool(bool),
     Empty,
+}
+
+fn check_year_range<DT: Datelike>(value: DT) -> Option<DT> {
+    if value.year() < MINYEAR || value.year() > MAXYEAR {
+        None
+    } else {
+        Some(value)
+    }
 }
 
 impl<'py> IntoPyObject<'py> for CellValue {
@@ -64,19 +80,31 @@ where
             } else if v < 1.0 {
                 value.as_time().map(CellValue::Time)
             } else if v == (v as u64) as f64 {
-                value.as_date().map(CellValue::Date)
+                value
+                    .as_date()
+                    .and_then(check_year_range)
+                    .map(CellValue::Date)
             } else {
-                value.as_datetime().map(CellValue::DateTime)
+                value
+                    .as_datetime()
+                    .and_then(check_year_range)
+                    .map(CellValue::DateTime)
             }
             .unwrap_or(CellValue::Float(v))
         } else if value.is_datetime_iso() {
             let v = value.get_datetime_iso().unwrap();
             if v.contains('T') {
-                value.as_datetime().map(CellValue::DateTime)
+                value
+                    .as_datetime()
+                    .and_then(check_year_range)
+                    .map(CellValue::DateTime)
             } else if v.contains(':') {
                 value.as_time().map(CellValue::Time)
             } else {
-                value.as_date().map(CellValue::Date)
+                value
+                    .as_date()
+                    .and_then(check_year_range)
+                    .map(CellValue::Date)
             }
             .unwrap_or(CellValue::String(v.to_owned()))
         } else if value.is_duration_iso() {

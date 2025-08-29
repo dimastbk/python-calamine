@@ -22,6 +22,8 @@ def expected_df_ods():
                 # duration (255:10:10) isn't supported
                 # see https://github.com/tafia/calamine/pull/288 and https://github.com/chronotope/chrono/issues/579
                 "PT255H10M10S",
+                "20010-10-10",
+                "20010-10-10T10:10:10",
             ],
         ],
         columns=[
@@ -35,6 +37,8 @@ def expected_df_ods():
             "Unnamed: 7",
             "Unnamed: 8",
             "Unnamed: 9",
+            "Unnamed: 10",
+            "Unnamed: 11",
         ],
     )
 
@@ -56,6 +60,8 @@ def expected_df_excel():
                 time(10, 10, 10),
                 pd.Timedelta(hours=10, minutes=10, seconds=10, microseconds=100000),
                 pd.Timedelta(hours=255, minutes=10, seconds=10),
+                6614826,
+                6614826.42372685,
             ],
         ],
         columns=[
@@ -69,5 +75,7 @@ def expected_df_excel():
             "Unnamed: 7",
             "Unnamed: 8",
             "Unnamed: 9",
+            "Unnamed: 10",
+            "Unnamed: 11",
         ],
     )
