@@ -8,7 +8,7 @@ use crate::types::{
 };
 
 #[pyfunction]
-fn load_workbook(py: Python, path_or_filelike: PyObject) -> PyResult<CalamineWorkbook> {
+fn load_workbook(py: Python, path_or_filelike: Py<PyAny>) -> PyResult<CalamineWorkbook> {
     CalamineWorkbook::from_object(py, path_or_filelike)
 }
 
