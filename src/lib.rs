@@ -12,7 +12,7 @@ use crate::types::{
 #[pyo3(signature = (path_or_filelike, read_formulas=false))]
 fn load_workbook(
     py: Python,
-    path_or_filelike: PyObject,
+    path_or_filelike: Py<PyAny>,
     read_formulas: bool,
 ) -> PyResult<CalamineWorkbook> {
     CalamineWorkbook::from_object(py, path_or_filelike, read_formulas)

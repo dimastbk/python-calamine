@@ -112,7 +112,7 @@ impl CalamineWorkbook {
     fn py_from_object(
         _cls: &Bound<'_, PyType>,
         py: Python<'_>,
-        path_or_filelike: PyObject,
+        path_or_filelike: Py<PyAny>,
         read_formulas: bool,
     ) -> PyResult<Self> {
         Self::from_object(py, path_or_filelike, read_formulas)
@@ -123,10 +123,10 @@ impl CalamineWorkbook {
     fn py_from_filelike(
         _cls: &Bound<'_, PyType>,
         py: Python<'_>,
-        filelike: PyObject,
+        filelike: Py<PyAny>,
         read_formulas: bool,
     ) -> PyResult<Self> {
-        py.allow_threads(|| Self::from_filelike(filelike, read_formulas))
+        py.detach(|| Self::from_filelike(filelike, read_formulas))
     }
 
     #[classmethod]
@@ -134,17 +134,17 @@ impl CalamineWorkbook {
     fn py_from_path(
         _cls: &Bound<'_, PyType>,
         py: Python<'_>,
-        path: PyObject,
+        path: Py<PyAny>,
         read_formulas: bool,
     ) -> PyResult<Self> {
         if let Ok(string_ref) = path.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.allow_threads(|| Self::from_path(&path, read_formulas));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         if let Ok(string_ref) = path.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.allow_threads(|| Self::from_path(&path, read_formulas));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         Err(PyTypeError::new_err(""))
@@ -152,12 +152,12 @@ impl CalamineWorkbook {
 
     #[pyo3(name = "get_sheet_by_name")]
     fn py_get_sheet_by_name(&mut self, py: Python<'_>, name: &str) -> PyResult<CalamineSheet> {
-        py.allow_threads(|| self.get_sheet_by_name(name))
+        py.detach(|| self.get_sheet_by_name(name))
     }
 
     #[pyo3(name = "get_sheet_by_index")]
     fn py_get_sheet_by_index(&mut self, py: Python<'_>, index: usize) -> PyResult<CalamineSheet> {
-        py.allow_threads(|| self.get_sheet_by_index(index))
+        py.detach(|| self.get_sheet_by_index(index))
     }
 
     fn close(&mut self) -> PyResult<()> {
@@ -177,9 +177,9 @@ impl CalamineWorkbook {
 
     fn __exit__(
         &mut self,
-        _exc_type: PyObject,
-        _exc_value: PyObject,
-        _traceback: PyObject,
+        _exc_type: Py<PyAny>,
+        _exc_value: Py<PyAny>,
+        _traceback: Py<PyAny>,
     ) -> PyResult<()> {
         self.close()
     }
@@ -188,23 +188,23 @@ impl CalamineWorkbook {
 impl CalamineWorkbook {
     pub fn from_object(
         py: Python<'_>,
-        path_or_filelike: PyObject,
+        path_or_filelike: Py<PyAny>,
         read_formulas: bool,
     ) -> PyResult<Self> {
         if let Ok(string_ref) = path_or_filelike.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.allow_threads(|| Self::from_path(&path, read_formulas));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         if let Ok(string_ref) = path_or_filelike.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.allow_threads(|| Self::from_path(&path, read_formulas));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
-        py.allow_threads(|| Self::from_filelike(path_or_filelike, read_formulas))
+        py.detach(|| Self::from_filelike(path_or_filelike, read_formulas))
     }
 
-    pub fn from_filelike(filelike: PyObject, read_formulas: bool) -> PyResult<Self> {
+    pub fn from_filelike(filelike: Py<PyAny>, read_formulas: bool) -> PyResult<Self> {
         let mut buf = vec![];
         PyFileLikeObject::with_requirements(filelike, true, false, true, false)?
             .read_to_end(&mut buf)?;
