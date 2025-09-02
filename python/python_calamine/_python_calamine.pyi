@@ -73,21 +73,15 @@ class CalamineSheet:
                 For suppress this behaviour, set `skip_empty_area` to `False`.
         """
 
-    def iter_rows(
-        self,
-    ) -> typing.Iterator[
-        list[
-            int
-            | float
-            | str
-            | bool
-            | datetime.time
-            | datetime.date
-            | datetime.datetime
-            | datetime.timedelta
-        ]
-    ]:
-        """Retunrning data from sheet as iterator of lists."""
+    def iter_rows(self) -> CalamineCellIterator:
+        """Return data from sheet as an iterator."""
+
+    def iter_formulas(self) -> CalamineFormulaIterator:
+        """Return formulas from sheet as an iterator.
+
+        Raises:
+            ValueError: If read_formulas=False when creating the workbook.
+        """
 
     @property
     def merged_cell_ranges(
@@ -102,34 +96,78 @@ class CalamineSheet:
         """
 
 @typing.final
+class CalamineCellIterator:
+    """Iterator for cell data in a CalamineSheet."""
+
+    position: int
+    start: tuple[int, int]
+    height: int
+    width: int
+
+    def __iter__(self) -> "CalamineCellIterator": ...
+    def __next__(
+        self,
+    ) -> list[
+        int
+        | float
+        | str
+        | bool
+        | datetime.time
+        | datetime.date
+        | datetime.datetime
+        | datetime.timedelta
+    ]: ...
+
+@typing.final
+class CalamineFormulaIterator:
+    """Iterator for formula data in a CalamineSheet."""
+
+    position: int
+    start: tuple[int, int]
+    width: int
+    height: int
+
+    def __iter__(self) -> "CalamineFormulaIterator": ...
+    def __next__(self) -> list[str]: ...
+
+@typing.final
 class CalamineWorkbook(contextlib.AbstractContextManager):
     path: str | None
     sheet_names: list[str]
     sheets_metadata: list[SheetMetadata]
     @classmethod
     def from_object(
-        cls, path_or_filelike: str | os.PathLike | ReadBuffer
+        cls,
+        path_or_filelike: str | os.PathLike | ReadBuffer,
+        read_formulas: bool = False,
     ) -> "CalamineWorkbook":
         """Determining type of pyobject and reading from it.
 
         Args:
             path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+            read_formulas (bool): Enable formula reading support. Default is False.
         """
 
     @classmethod
-    def from_path(cls, path: str | os.PathLike) -> "CalamineWorkbook":
+    def from_path(
+        cls, path: str | os.PathLike, read_formulas: bool = False
+    ) -> "CalamineWorkbook":
         """Reading file from path.
 
         Args:
             path (str | os.PathLike): path to file.
+            read_formulas (bool): Enable formula reading support. Default is False.
         """
 
     @classmethod
-    def from_filelike(cls, filelike: ReadBuffer) -> "CalamineWorkbook":
+    def from_filelike(
+        cls, filelike: ReadBuffer, read_formulas: bool = False
+    ) -> "CalamineWorkbook":
         """Reading file from IO.
 
         Args:
             filelike : IO (must imlpement read/seek methods).
+            read_formulas (bool): Enable formula reading support. Default is False.
         """
 
     def close(self) -> None:
@@ -185,10 +223,11 @@ class ZipError(CalamineError): ...
 class WorkbookClosed(CalamineError): ...
 
 def load_workbook(
-    path_or_filelike: str | os.PathLike | ReadBuffer,
+    path_or_filelike: str | os.PathLike | ReadBuffer, read_formulas: bool = False
 ) -> CalamineWorkbook:
     """Determining type of pyobject and reading from it.
 
     Args:
         path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+        read_formulas (bool): Enable formula reading support. Default is False.
     """
