@@ -375,3 +375,10 @@ def test_close_workbook_double():
 
     with pytest.raises(WorkbookClosed):
         reader.close()
+
+
+def test_datetime_overflow():
+    reader = CalamineWorkbook.from_path(PATH / "issue139.xlsx")
+
+    # 2994626.0 = 10099-01-01
+    assert reader.get_sheet_by_index(0).to_python() == [["date"], [2994626.0]]
