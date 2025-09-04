@@ -58,7 +58,7 @@ Also, you can find additional examples in [tests](https://github.com/dimastbk/py
 
 You'll need rust [installed](https://rustup.rs/).
 
-```python
+```shell
 # clone this repo or your fork
 git clone git@github.com:dimastbk/python-calamine.git
 cd python-calamine
@@ -66,7 +66,7 @@ cd python-calamine
 python3 -m venv env
 source env/bin/activate
 # install dev dependencies and install python-calamine
-pip install -e .[dev]
+pip install --group dev -e .  # required pip 25.1 and above
 # lint code
 pre-commit run --all-files
 # test code
