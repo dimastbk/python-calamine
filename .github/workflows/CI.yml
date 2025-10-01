@@ -153,16 +153,16 @@ jobs:
           - os: windows
             ls: dir
             target: x86_64
-            interpreter: 3.10 3.11 3.12 3.13 3.13t
+            interpreter: 3.10 3.11 3.12 3.13 3.14
           - os: windows
             ls: dir
             target: i686
             python-architecture: x86
-            interpreter: 3.10 3.11 3.12 3.13 3.13t
+            interpreter: 3.10 3.11 3.12 3.13 3.14
           - os: windows
             ls: dir
             target: aarch64
-            interpreter: 3.11 3.12 3.13 3.13t
+            interpreter: 3.11 3.12 3.13 3.14
           - os: ubuntu
             platform: linux
             target: i686
@@ -172,7 +172,6 @@ jobs:
           - os: ubuntu
             platform: linux
             target: armv7
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
             # musllinux
           - os: ubuntu
             platform: linux
@@ -185,11 +184,9 @@ jobs:
           - os: ubuntu
             platform: linux
             target: ppc64le
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
           - os: ubuntu
             platform: linux
             target: s390x
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
 
     runs-on: ${{ matrix.os }}-latest
     steps:
