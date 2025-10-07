@@ -64,9 +64,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "calamine"
-version = "0.30.1"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1a9acfeb1555aa8def91fe8ff208aadaea850c109968ec35ac965edbe7d210b"
+checksum = "da56b262e8a827c6b12c3dde4ea4622e0ff542bd2e9ea5855e4cb523481d77b7"
 dependencies = [
  "atoi_simd",
  "byteorder",
@@ -509,9 +509,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.37.4"
+version = "0.38.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4ce8c88de324ff838700f36fb6ab86c96df0e3c4ab6ef3a9b2044465cce1369"
+checksum = "42a232e7487fc2ef313d96dde7948e7a3c05101870d8985e4fd8d26aedd27b89"
 dependencies = [
  "encoding_rs",
  "memchr",
