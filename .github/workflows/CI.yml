@@ -106,7 +106,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - uses: actions/cache@v4
         id: cache-py
@@ -198,7 +198,7 @@ jobs:
       - name: set up python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           architecture: ${{ matrix.python-architecture || 'x64' }}
 
       - run: pip install -U twine
