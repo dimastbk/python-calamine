@@ -160,23 +160,16 @@ jobs:
             target: i686
           - os: linux
             manylinux: auto
-            target: aarch64
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t 
-          - os: linux
-            manylinux: auto
             target: armv7
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t 
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
           - os: linux
             manylinux: auto
             target: ppc64le
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t 
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
           - os: linux
             manylinux: auto
             target: s390x
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t 
-          - os: linux
-            manylinux: auto
-            target: x86_64
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
 
           # musllinux
           - os: linux
@@ -200,7 +193,6 @@ jobs:
             target: x86_64
           - os: windows
             target: i686
-            python-architecture: x86
             interpreter: 3.10 3.11 3.12 3.13 3.14
           - os: windows
             target: aarch64
@@ -219,7 +211,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-          architecture: ${{ matrix.python-architecture || 'x64' }}
+
+      - name: install rust stable
+        uses: dtolnay/rust-toolchain@stable
 
       - run: pip install -U twine
 
@@ -271,3 +265,25 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  gh-release:
+    needs: [build, check]
+    if: success() && startsWith(github.ref, 'refs/tags/')
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          pattern: wheels-*
+          merge-multiple: true
+
+      - name: Upload to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./*
