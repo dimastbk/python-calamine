@@ -212,12 +212,15 @@ impl CalamineSheet {
             Arc::clone(&slf.range)
         };
 
-        PyList::new(
-            slf.py(),
-            range.rows().take(nrows as usize).map(|row| {
-                PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)).unwrap()
-            }),
-        )
+        let py_list = PyList::empty(slf.py());
+
+        for row in range.rows().take(nrows as usize) {
+            let py_row = PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))?;
+
+            py_list.append(py_row)?;
+        }
+
+        Ok(py_list)
     }
 
     fn iter_rows(&self) -> CalamineCellIterator {

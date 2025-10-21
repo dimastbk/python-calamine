@@ -16,13 +16,17 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
   "maturin~=1.0",
   "pre-commit~=4.3",
   "pytest~=8.0",
   "pandas[excel]~=2.2",
 ]
+
+[project.urls]
+homepage = "https://github.com/dimastbk/python-calamine"
+source = "https://github.com/dimastbk/python-calamine"
 
 [tool.isort]
 include_trailing_comma = true
