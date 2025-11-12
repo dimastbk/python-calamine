@@ -7,7 +7,7 @@ use calamine::{
 };
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyString, PyType};
+use pyo3::types::PyType;
 use pyo3_file::PyFileLikeObject;
 
 use crate::utils::err_to_py;
@@ -120,11 +120,6 @@ impl CalamineWorkbook {
     #[classmethod]
     #[pyo3(name = "from_path")]
     fn py_from_path(_cls: &Bound<'_, PyType>, py: Python<'_>, path: Py<PyAny>) -> PyResult<Self> {
-        if let Ok(string_ref) = path.downcast_bound::<PyString>(py) {
-            let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
-        }
-
         if let Ok(string_ref) = path.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
             return py.detach(|| Self::from_path(&path));
@@ -170,11 +165,6 @@ impl CalamineWorkbook {
 
 impl CalamineWorkbook {
     pub fn from_object(py: Python<'_>, path_or_filelike: Py<PyAny>) -> PyResult<Self> {
-        if let Ok(string_ref) = path_or_filelike.downcast_bound::<PyString>(py) {
-            let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
-        }
-
         if let Ok(string_ref) = path_or_filelike.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
             return py.detach(|| Self::from_path(&path));
