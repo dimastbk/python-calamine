@@ -39,6 +39,14 @@ impl SheetsEnum {
         }
     }
 
+    fn worksheet_range_formula(&mut self, name: &str) -> Result<calamine::Range<String>, Error> {
+        match self {
+            SheetsEnum::File(f) => f.worksheet_formula(name).map_err(Error::Calamine),
+            SheetsEnum::FileLike(f) => f.worksheet_formula(name).map_err(Error::Calamine),
+            SheetsEnum::None => Err(Error::WorkbookClosed),
+        }
+    }
+
     fn worksheet_range(&mut self, name: &str) -> Result<calamine::Range<calamine::Data>, Error> {
         match self {
             SheetsEnum::File(f) => f.worksheet_range(name).map_err(Error::Calamine),
@@ -86,6 +94,8 @@ pub struct CalamineWorkbook {
     sheets_metadata: Vec<SheetMetadata>,
     #[pyo3(get)]
     sheet_names: Vec<String>,
+    #[pyo3(get)]
+    read_formulas: bool,
 }
 
 #[pymethods]
@@ -98,36 +108,43 @@ impl CalamineWorkbook {
     }
 
     #[classmethod]
-    #[pyo3(name = "from_object")]
+    #[pyo3(name = "from_object", signature = (path_or_filelike, read_formulas=false))]
     fn py_from_object(
         _cls: &Bound<'_, PyType>,
         py: Python<'_>,
         path_or_filelike: Py<PyAny>,
+        read_formulas: bool,
     ) -> PyResult<Self> {
-        Self::from_object(py, path_or_filelike)
+        Self::from_object(py, path_or_filelike, read_formulas)
     }
 
     #[classmethod]
-    #[pyo3(name = "from_filelike")]
+    #[pyo3(name = "from_filelike", signature = (filelike, read_formulas=false))]
     fn py_from_filelike(
         _cls: &Bound<'_, PyType>,
         py: Python<'_>,
         filelike: Py<PyAny>,
+        read_formulas: bool,
     ) -> PyResult<Self> {
-        py.detach(|| Self::from_filelike(filelike))
+        py.detach(|| Self::from_filelike(filelike, read_formulas))
     }
 
     #[classmethod]
-    #[pyo3(name = "from_path")]
-    fn py_from_path(_cls: &Bound<'_, PyType>, py: Python<'_>, path: Py<PyAny>) -> PyResult<Self> {
+    #[pyo3(name = "from_path", signature = (path, read_formulas=false))]
+    fn py_from_path(
+        _cls: &Bound<'_, PyType>,
+        py: Python<'_>,
+        path: Py<PyAny>,
+        read_formulas: bool,
+    ) -> PyResult<Self> {
         if let Ok(string_ref) = path.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         if let Ok(string_ref) = path.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         Err(PyTypeError::new_err(""))
@@ -169,21 +186,25 @@ impl CalamineWorkbook {
 }
 
 impl CalamineWorkbook {
-    pub fn from_object(py: Python<'_>, path_or_filelike: Py<PyAny>) -> PyResult<Self> {
+    pub fn from_object(
+        py: Python<'_>,
+        path_or_filelike: Py<PyAny>,
+        read_formulas: bool,
+    ) -> PyResult<Self> {
         if let Ok(string_ref) = path_or_filelike.downcast_bound::<PyString>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
         if let Ok(string_ref) = path_or_filelike.extract::<PathBuf>(py) {
             let path = string_ref.to_string_lossy().to_string();
-            return py.detach(|| Self::from_path(&path));
+            return py.detach(|| Self::from_path(&path, read_formulas));
         }
 
-        py.detach(|| Self::from_filelike(path_or_filelike))
+        py.detach(|| Self::from_filelike(path_or_filelike, read_formulas))
     }
 
-    pub fn from_filelike(filelike: Py<PyAny>) -> PyResult<Self> {
+    pub fn from_filelike(filelike: Py<PyAny>, read_formulas: bool) -> PyResult<Self> {
         let mut buf = vec![];
         PyFileLikeObject::with_requirements(filelike, true, false, true, false)?
             .read_to_end(&mut buf)?;
@@ -201,10 +222,11 @@ impl CalamineWorkbook {
             sheets,
             sheets_metadata,
             sheet_names,
+            read_formulas,
         })
     }
 
-    pub fn from_path(path: &str) -> PyResult<Self> {
+    pub fn from_path(path: &str, read_formulas: bool) -> PyResult<Self> {
         let sheets = SheetsEnum::File(
             open_workbook_auto(path)
                 .map_err(Error::Calamine)
@@ -218,15 +240,27 @@ impl CalamineWorkbook {
             sheets,
             sheets_metadata,
             sheet_names,
+            read_formulas,
         })
     }
 
     fn get_sheet_by_name(&mut self, name: &str) -> PyResult<CalamineSheet> {
         let range = self.sheets.worksheet_range(name).map_err(err_to_py)?;
+        let formula_range = if self.read_formulas {
+            Some(
+                self.sheets
+                    .worksheet_range_formula(name)
+                    .map_err(err_to_py)?,
+            )
+        } else {
+            None
+        };
+
         let merge_cells_range = self.sheets.worksheet_merge_cells(name).map_err(err_to_py)?;
         Ok(CalamineSheet::new(
             name.to_owned(),
             range,
+            formula_range,
             merge_cells_range,
         ))
     }
