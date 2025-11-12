@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import datetime
 import enum
 import os
@@ -32,9 +31,9 @@ class SheetMetadata:
     typ: SheetTypeEnum
     visible: SheetVisibleEnum
 
-    def __init__(
-        self, name: str, typ: SheetTypeEnum, visible: SheetVisibleEnum
-    ) -> None: ...
+    def __new__(
+        cls, name: str, typ: SheetTypeEnum, visible: SheetVisibleEnum
+    ) -> SheetMetadata: ...
 
 @typing.final
 class CalamineSheet:
@@ -102,34 +101,75 @@ class CalamineSheet:
         """
 
 @typing.final
-class CalamineWorkbook(contextlib.AbstractContextManager):
+class CalamineTable:
+    name: str
+    sheet: str
+    columns: list[str]
+    @property
+    def height(self) -> int: ...
+    @property
+    def width(self) -> int: ...
+    @property
+    def total_height(self) -> int: ...
+    @property
+    def total_width(self) -> int: ...
+    @property
+    def start(self) -> tuple[int, int] | None: ...
+    @property
+    def end(self) -> tuple[int, int] | None: ...
+    def to_python(
+        self,
+    ) -> list[
+        list[
+            int
+            | float
+            | str
+            | bool
+            | datetime.time
+            | datetime.date
+            | datetime.datetime
+            | datetime.timedelta
+        ]
+    ]:
+        """Retunrning data from table as list of lists."""
+
+@typing.final
+class CalamineWorkbook:
     path: str | None
     sheet_names: list[str]
     sheets_metadata: list[SheetMetadata]
+    table_names: list[str] | None
     @classmethod
     def from_object(
-        cls, path_or_filelike: str | os.PathLike | ReadBuffer
+        cls, path_or_filelike: str | os.PathLike | ReadBuffer, load_tables: bool = False
     ) -> "CalamineWorkbook":
         """Determining type of pyobject and reading from it.
 
         Args:
             path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+            load_tables (bool): load Excel tables (supported for XLSX only).
         """
 
     @classmethod
-    def from_path(cls, path: str | os.PathLike) -> "CalamineWorkbook":
+    def from_path(
+        cls, path: str | os.PathLike, load_tables: bool = False
+    ) -> "CalamineWorkbook":
         """Reading file from path.
 
         Args:
             path (str | os.PathLike): path to file.
+            load_tables (bool): load Excel tables (supported for XLSX only).
         """
 
     @classmethod
-    def from_filelike(cls, filelike: ReadBuffer) -> "CalamineWorkbook":
+    def from_filelike(
+        cls, filelike: ReadBuffer, load_tables: bool = False
+    ) -> "CalamineWorkbook":
         """Reading file from IO.
 
         Args:
             filelike : IO (must imlpement read/seek methods).
+            load_tables (bool): load Excel tables (supported for XLSX only).
         """
 
     def close(self) -> None:
@@ -177,18 +217,55 @@ class CalamineWorkbook(contextlib.AbstractContextManager):
             WorksheetNotFound: If worksheet not found in workbook.
         """
 
+    def get_table_by_name(self, name: str) -> CalamineTable:
+        """Get table by name.
+
+        Args:
+            name(str): name of table
+
+        Returns:
+            CalamineTable
+
+        Raises:
+            WorkbookClosed: If workbook already closed.
+            WorksheetNotFound: If worksheet not found in workbook.
+        """
+
 class CalamineError(Exception): ...
 class PasswordError(CalamineError): ...
 class WorksheetNotFound(CalamineError): ...
 class XmlError(CalamineError): ...
 class ZipError(CalamineError): ...
 class WorkbookClosed(CalamineError): ...
+class TablesNotLoaded(CalamineError): ...
+class TablesNotSupported(CalamineError): ...
+class TableNotFound(CalamineError): ...
 
 def load_workbook(
-    path_or_filelike: str | os.PathLike | ReadBuffer,
+    path_or_filelike: str | os.PathLike | ReadBuffer, load_tables: bool = False
 ) -> CalamineWorkbook:
     """Determining type of pyobject and reading from it.
 
     Args:
         path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+        load_tables (bool): load Excel tables (supported for XLSX only).
     """
+
+__all__ = [
+    "CalamineError",
+    "CalamineSheet",
+    "CalamineTable",
+    "CalamineWorkbook",
+    "PasswordError",
+    "SheetMetadata",
+    "SheetTypeEnum",
+    "SheetVisibleEnum",
+    "TableNotFound",
+    "TablesNotLoaded",
+    "TablesNotSupported",
+    "WorkbookClosed",
+    "WorksheetNotFound",
+    "XmlError",
+    "ZipError",
+    "load_workbook",
+]
