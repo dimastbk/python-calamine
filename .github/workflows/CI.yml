@@ -117,7 +117,7 @@ jobs:
             py
             ${{ env.pythonLocation }}
 
-      - run: pip install pre-commit
+      - run: pip install pre-commit mypy
         if: steps.cache-py.outputs.cache-hit != 'true'
 
       - run: pip install .
