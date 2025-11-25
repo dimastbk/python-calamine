@@ -286,4 +286,6 @@ jobs:
       - name: Upload to GitHub
         uses: softprops/action-gh-release@v2
         with:
-          files: ./*
+          generate_release_notes: true
+          files: |
+            dist/*
