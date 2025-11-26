@@ -218,7 +218,7 @@ jobs:
       - run: pip install -U twine
 
       - name: build sdist
-        if: ${{ matrix.os == 'ubuntu' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
+        if: ${{ matrix.os == 'linux' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
