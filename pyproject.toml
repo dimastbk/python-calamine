@@ -20,7 +20,7 @@ dynamic = ["version"]
 dev = [
   "maturin~=1.0",
   "pre-commit~=4.3",
-  "mypy~=1.18.2",
+  "mypy~=1.19.0",
   "pytest~=9.0",
   "pandas[excel]~=2.2",
 ]
