@@ -18,19 +18,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "arbitrary"
-version = "1.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
-dependencies = [
- "derive_arbitrary",
-]
-
-[[package]]
 name = "atoi_simd"
-version = "0.16.1"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2a49e05797ca52e312a0c658938b7d00693ef037799ef7187678f212d7684cf"
+checksum = "8ad17c7c205c2c28b527b9845eeb91cf1b4d008b438f98ce0e628227a822758e"
 dependencies = [
  "debug_unsafe",
 ]
@@ -67,9 +58,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "calamine"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41bdeb83af82cd9cb686a19ed7efc2f50a21c262610f51ce945a8528860725ce"
+checksum = "96ae094b353c7810cd5efd2e69413ebb9354816138a387c09f7b90d4e826a49f"
 dependencies = [
  "atoi_simd",
  "byteorder",
@@ -173,17 +164,6 @@ name = "debug_unsafe"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85d3cef41d236720ed453e102153a53e4cc3d2fde848c0078a50cf249e8e3e5b"
-
-[[package]]
-name = "derive_arbitrary"
-version = "1.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e567bd82dcff979e4b03460c307b3cdc9e96fde3d73bed1496d2bc75d9dd62a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "encoding_rs"
@@ -692,6 +672,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-path"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3015e6ce46d5ad8751e4a772543a30c7511468070e98e64e20165f8f81155b64"
+
+[[package]]
 name = "unicase"
 version = "2.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -864,15 +850,15 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
 name = "zip"
-version = "4.6.1"
+version = "7.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
+checksum = "268bf6f9ceb991e07155234071501490bb41fd1e39c6a588106dad10ae2a5804"
 dependencies = [
- "arbitrary",
  "crc32fast",
  "flate2",
  "indexmap",
  "memchr",
+ "typed-path",
  "zopfli",
 ]
 
