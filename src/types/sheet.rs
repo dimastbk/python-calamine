@@ -8,7 +8,7 @@ use pyo3::types::PyList;
 
 use crate::CellValue;
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq, eq_int, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetTypeEnum {
     /// WorkSheet
@@ -41,7 +41,7 @@ impl From<SheetType> for SheetTypeEnum {
     }
 }
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq, eq_int, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetVisibleEnum {
     /// Visible
@@ -70,7 +70,7 @@ impl From<SheetVisible> for SheetVisibleEnum {
 
 type MergedCellRange = ((u32, u32), (u32, u32));
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, PartialEq)]
 pub struct SheetMetadata {
     #[pyo3(get)]
