@@ -17,7 +17,7 @@ fn load_workbook(
     CalamineWorkbook::from_object(py, path_or_filelike, load_tables)
 }
 
-#[pymodule(gil_used = false)]
+#[pymodule]
 fn _python_calamine(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(load_workbook, m)?)?;
     m.add_class::<CalamineWorkbook>()?;
