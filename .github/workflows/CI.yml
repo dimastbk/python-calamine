@@ -191,6 +191,7 @@ jobs:
           # windows
           - os: windows
             target: x86_64
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
           - os: windows
             target: i686
             interpreter: 3.10 3.11 3.12 3.13 3.14

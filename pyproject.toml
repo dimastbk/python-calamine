@@ -22,7 +22,7 @@ dev = [
   "pre-commit~=4.3",
   "mypy~=1.19.0",
   "pytest~=9.0",
-  "pandas[excel]~=3.0",
+  "pandas[excel]>=2.2",
 ]
 
 [project.urls]

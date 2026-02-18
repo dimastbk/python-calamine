@@ -6,7 +6,7 @@ use pyo3::types::PyList;
 
 use crate::CellValue;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, PartialEq)]
 pub struct CalamineTable {
     #[pyo3(get)]
