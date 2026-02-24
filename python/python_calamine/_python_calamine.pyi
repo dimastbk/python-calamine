@@ -88,7 +88,7 @@ class CalamineSheet:
             | datetime.timedelta
         ]
     ]:
-        """Retunrning data from sheet as list of lists.
+        """Returning data from sheet as list of lists.
 
         Args:
             skip_empty_area (bool):
@@ -110,7 +110,7 @@ class CalamineSheet:
             | datetime.timedelta
         ]
     ]:
-        """Retunrning data from sheet as iterator of lists."""
+        """Returning data from sheet as iterator of lists."""
 
     @property
     def merged_cell_ranges(
@@ -121,7 +121,7 @@ class CalamineSheet:
         Support only for xlsx/xls.
 
         Returns:
-            list of merged cell ranges (tuple[start coordinate, end coordinate]) or None for unsuported format
+            list of merged cell ranges (tuple[start coordinate, end coordinate]) or None for unsupported format
         """
 
 @typing.final
@@ -172,7 +172,7 @@ class CalamineTable:
             | datetime.timedelta
         ]
     ]:
-        """Retunrning data from table as list of lists."""
+        """Returning data from table as list of lists."""
 
 @typing.final
 class CalamineWorkbook:
@@ -191,7 +191,7 @@ class CalamineWorkbook:
         """Determining type of pyobject and reading from it.
 
         Args:
-            path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+            path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must implement read/seek methods).
             load_tables (bool): load Excel tables (supported for XLSX only).
         """
 
@@ -213,7 +213,7 @@ class CalamineWorkbook:
         """Reading file from IO.
 
         Args:
-            filelike : IO (must imlpement read/seek methods).
+            filelike : IO (must implement read/seek methods).
             load_tables (bool): load Excel tables (supported for XLSX only).
         """
 
@@ -273,7 +273,7 @@ class CalamineWorkbook:
 
         Raises:
             WorkbookClosed: If workbook already closed.
-            WorksheetNotFound: If worksheet not found in workbook.
+            TableNotFound: If table not found in workbook.
         """
 
 class CalamineError(Exception): ...
@@ -292,7 +292,7 @@ def load_workbook(
     """Determining type of pyobject and reading from it.
 
     Args:
-        path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must imlpement read/seek methods).
+        path_or_filelike (str | os.PathLike | ReadBuffer): path to file or IO (must implement read/seek methods).
         load_tables (bool): load Excel tables (supported for XLSX only).
     """
 
