@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use calamine::DataType;
+use calamine::{Data, DataType};
 use chrono::Datelike;
 use pyo3::prelude::*;
 
@@ -29,6 +29,50 @@ fn check_year_range<DT: Datelike>(value: DT) -> Option<DT> {
         None
     } else {
         Some(value)
+    }
+}
+
+pub fn convert_to_pandas_cell(data: &Data) -> CellValue {
+    match data {
+        // # GH#54564
+        // # pandas casts x.0 floats to x int
+        Data::Float(f) => {
+            if f.is_finite() && !f.is_nan() && (*f as i64) as f64 == *f {
+                (&Data::Int(*f as i64)).into()
+            } else {
+                data.into()
+            }
+        }
+        // Return timedeltas and datetimes as-is to match openpyxl behavior (GH#59186)
+        Data::DateTime(dt) => {
+            let v = dt.as_f64();
+            if dt.is_duration() {
+                data.as_duration().map(CellValue::Timedelta)
+            } else if v < 1.0 {
+                data.as_time().map(CellValue::Time)
+            } else {
+                data.as_datetime()
+                    .and_then(check_year_range)
+                    .map(CellValue::DateTime)
+            }
+            .unwrap_or(CellValue::Float(v))
+        }
+        Data::DateTimeIso(v) => {
+            if v.contains('T') {
+                data.as_datetime()
+                    .and_then(check_year_range)
+                    .map(CellValue::DateTime)
+            } else if v.contains(':') {
+                data.as_time().map(CellValue::Time)
+            } else {
+                data.as_date()
+                    .and_then(check_year_range)
+                    .and_then(|date| date.and_hms_opt(0, 0, 0))
+                    .map(CellValue::DateTime)
+            }
+        }
+        .unwrap_or(CellValue::String(v.to_owned())),
+        _ => data.into(),
     }
 }
 
