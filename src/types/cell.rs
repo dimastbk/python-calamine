@@ -2,6 +2,8 @@ use std::convert::From;
 
 use calamine::{Data, DataType};
 use chrono::Datelike;
+use num_bigint::BigInt;
+use num_traits::FromPrimitive;
 use pyo3::prelude::*;
 
 /// https://docs.python.org/3/library/datetime.html#constants
@@ -13,6 +15,7 @@ const MAXYEAR: i32 = 9999;
 
 #[derive(Debug, Clone)]
 pub enum CellValue {
+    BigInt(BigInt),
     Int(i64),
     Float(f64),
     String(String),
@@ -37,8 +40,12 @@ pub fn convert_to_pandas_cell(data: &Data) -> CellValue {
         // # GH#54564
         // # pandas casts x.0 floats to x int
         Data::Float(f) => {
-            if f.is_finite() && !f.is_nan() && (*f as i64) as f64 == *f {
-                (&Data::Int(*f as i64)).into()
+            if f.is_finite() && !f.is_nan() && f.fract() == 0. {
+                if *f >= i64::MIN as f64 && *f < i64::MAX as f64 {
+                    CellValue::Int(*f as i64)
+                } else {
+                    CellValue::BigInt(BigInt::from_f64(*f).unwrap())
+                }
             } else {
                 data.into()
             }
@@ -83,6 +90,7 @@ impl<'py> IntoPyObject<'py> for CellValue {
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
+            CellValue::BigInt(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Int(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Float(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::String(v) => Ok(v.into_pyobject(py)?.into_any()),
