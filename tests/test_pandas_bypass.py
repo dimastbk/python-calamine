@@ -8,11 +8,11 @@ PATH = Path(__file__).parent / "data"
 
 def __old_convert_cell(value):
     if isinstance(value, float):
-        val = int(value)
-        if val == value:
-            return val
-        else:
-            return value
+        # GH#54564 - is_integer() returns False for NaN/Inf,
+        # so this safely avoids int() on non-finite values
+        if value.is_integer():
+            return int(value)
+        return value
     elif isinstance(value, (datetime, timedelta)):
         # Return as-is to match openpyxl behavior (GH#59186)
         return value
@@ -21,7 +21,6 @@ def __old_convert_cell(value):
         return datetime(value.year, value.month, value.day)
     elif isinstance(value, time):
         return value
-
     return value
 
 
