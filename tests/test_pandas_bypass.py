@@ -61,20 +61,13 @@ def test_old_pandas_xlsb():
         assert old_data == new_data
 
 
-from pprint import pprint
-
-
 def test_old_pandas_ods():
     sheet_names = ["Sheet1", "Sheet2", "Merged Cells"]
     wb = CalamineWorkbook.from_object(PATH / "base.ods")
 
     for sheet_name in sheet_names:
         sheet = wb.get_sheet_by_name(sheet_name)
-        pprint(sheet.to_python())
         old_data = [[__old_convert_cell(y) for y in x] for x in sheet.to_python()]
         new_data = sheet.to_python_pandas()
-
-        pprint(old_data)
-        pprint(new_data)
 
         assert old_data == new_data
