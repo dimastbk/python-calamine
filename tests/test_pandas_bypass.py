@@ -24,6 +24,28 @@ def __old_convert_cell(value):
     return value
 
 
+def test_old_pandas_ods_large_integer():
+    sheet = CalamineWorkbook.from_object(
+        PATH / "large_integer_pandas.ods"
+    ).get_sheet_by_index(0)
+
+    old_data = [[__old_convert_cell(y) for y in x] for x in sheet.to_python()]
+    new_data = sheet.to_python_pandas()
+
+    assert old_data == new_data
+
+
+def test_old_pandas_xlsx_large_integer():
+    sheet = CalamineWorkbook.from_object(
+        PATH / "large_integer_pandas.xlsx"
+    ).get_sheet_by_index(0)
+
+    old_data = [[__old_convert_cell(y) for y in x] for x in sheet.to_python()]
+    new_data = sheet.to_python_pandas()
+
+    assert old_data == new_data
+
+
 def test_old_pandas_xlsx():
     sheet_names = ["Sheet1", "Sheet2", "Merged Cells"]
     wb = CalamineWorkbook.from_object(PATH / "base.xlsx")
