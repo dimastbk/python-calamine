@@ -1,6 +1,7 @@
 use std::convert::From;
 
 use calamine::DataType;
+use chrono::Datelike;
 use pyo3::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -28,8 +29,22 @@ impl<'py> IntoPyObject<'py> for CellValue {
             CellValue::String(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Bool(v) => Ok(v.into_pyobject(py)?.to_owned().into_any()),
             CellValue::Time(v) => Ok(v.into_pyobject(py)?.into_any()),
-            CellValue::Date(v) => Ok(v.into_pyobject(py)?.into_any()),
-            CellValue::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
+            CellValue::Date(v) => {
+                if v.year() > 9999 || v.year() <= 1000 {
+                    let formatted = v.format("%Y-%m-%d").to_string();
+                    Ok(formatted.into_pyobject(py)?.into_any())
+                } else {
+                    Ok(v.into_pyobject(py)?.into_any())
+                }
+            }
+            CellValue::DateTime(v) => {
+                if v.year() > 9999 || v.year() <= 1000 {
+                    let formatted = v.format("%Y-%m-%dT%H:%M:%S%.f").to_string();
+                    Ok(formatted.into_pyobject(py)?.into_any())
+                } else {
+                    Ok(v.into_pyobject(py)?.into_any())
+                }
+            }
             CellValue::Timedelta(v) => Ok(v.into_pyobject(py)?.into_any()),
             CellValue::Empty => Ok("".into_pyobject(py)?.into_any()),
         }
