@@ -1,0 +1,4 @@
+-e .
+pytest~=8.0
+pandas[excel]~=2.0
+numpy~=1.0
