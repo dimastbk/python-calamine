@@ -6,6 +6,7 @@ use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
+use crate::types::cell::convert_to_pandas_cell;
 use crate::CellValue;
 
 #[pyclass(eq, eq_int, from_py_object)]
@@ -185,6 +186,39 @@ impl CalamineSheet {
     #[getter]
     fn end(&self) -> Option<(u32, u32)> {
         self.range.end()
+    }
+
+    #[pyo3(signature = (skip_empty_area=true, nrows=None))]
+    fn to_python_pandas(
+        slf: PyRef<'_, Self>,
+        skip_empty_area: bool,
+        nrows: Option<u32>,
+    ) -> PyResult<Bound<'_, PyList>> {
+        let nrows = match nrows {
+            Some(nrows) => nrows,
+            None => slf.range.end().map_or(0, |end| end.0 + 1),
+        };
+
+        let range = if skip_empty_area || Some((0, 0)) == slf.range.start() {
+            Arc::clone(&slf.range)
+        } else if let Some(end) = slf.range.end() {
+            Arc::new(slf.range.range(
+                (0, 0),
+                (if nrows > end.0 { end.0 } else { nrows - 1 }, end.1),
+            ))
+        } else {
+            Arc::clone(&slf.range)
+        };
+
+        let py_list = PyList::empty(slf.py());
+
+        for row in range.rows().take(nrows as usize) {
+            let py_row = PyList::new(slf.py(), row.iter().map(convert_to_pandas_cell))?;
+
+            py_list.append(py_row)?;
+        }
+
+        Ok(py_list)
     }
 
     #[pyo3(signature = (skip_empty_area=true, nrows=None))]

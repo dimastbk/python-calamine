@@ -74,6 +74,28 @@ class CalamineSheet:
     def end(self) -> tuple[int, int] | None:
         """Get bottom right cell position of a sheet data."""
 
+    def to_python_pandas(
+        self, skip_empty_area: bool = True, nrows: int | None = None
+    ) -> list[
+        list[
+            int
+            | float
+            | str
+            | bool
+            | datetime.time
+            | datetime.date
+            | datetime.datetime
+            | datetime.timedelta
+        ]
+    ]:
+        """Returning data from sheet as list of lists with pandas style coercion.
+
+        Args:
+            skip_empty_area (bool):
+                By default, calamine skips empty rows/cols before data.
+                For suppress this behaviour, set `skip_empty_area` to `False`.
+        """
+
     def to_python(
         self, skip_empty_area: bool = True, nrows: int | None = None
     ) -> list[
