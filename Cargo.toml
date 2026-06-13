@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 calamine = { version = "0.35.0", features = ["chrono"] }
-pyo3 = { version = "0.28.2", features = [
+pyo3 = { version = "0.29.0", features = [
     "extension-module",
     "chrono",
     "generate-import-lib",
