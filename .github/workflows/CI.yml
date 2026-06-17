@@ -35,9 +35,6 @@ jobs:
           - python-version: "pypy3.11"
             pandas-version: "none"
           # https://github.com/pandas-dev/pandas/issues/60016
-          - python-version: "3.13t"
-            pandas-version: "none"
-          # https://github.com/pandas-dev/pandas/issues/60016
           - python-version: "3.14t"
             pandas-version: "none"
 
@@ -64,7 +61,6 @@ jobs:
 
       - name: set up python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        if: "${{ !matrix.disable-gil }}"
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -173,15 +169,15 @@ jobs:
           - os: linux
             manylinux: auto
             target: armv7
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
           - os: linux
             manylinux: auto
             target: ppc64le
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
           - os: linux
             manylinux: auto
             target: s390x
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
 
           # musllinux
           - os: linux
@@ -203,14 +199,14 @@ jobs:
           # windows
           - os: windows
             target: x86_64
-            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
           - os: windows
             target: i686
             interpreter: 3.10 3.11 3.12 3.13 3.14
           - os: windows
             target: aarch64
             runs-on: windows-11-arm
-            interpreter: 3.11 3.12 3.13 3.13t 3.14 3.14t
+            interpreter: 3.11 3.12 3.13 3.14 3.14t
 
         exclude:
           # was just a dummy variable to set a default value for target
@@ -239,16 +235,14 @@ jobs:
           command: sdist
           args: --out dist
           rust-toolchain: stable
-          maturin-version: 1.13.3 # Free-threaded Python interpreter is only supported on 3.14 and later.
 
       - name: build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
-          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11' }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.10 3.11 3.12 3.13 3.14 3.14t pypy3.11' }}
           rust-toolchain: stable
-          maturin-version: 1.13.3 # Free-threaded Python interpreter is only supported on 3.14 and later.
 
       - run: ${{ (matrix.os == 'windows' && 'dir') || 'ls -lh' }} dist/
 
