@@ -49,3 +49,8 @@ build-backend = "maturin"
 [tool.maturin]
 module-name = "python_calamine._python_calamine"
 python-source = "python"
+
+[tool.cibuildwheel.pyodide]
+build = "cp314-*"
+test-requires = ["pytest"]
+test-command = "python -m pytest {project}/tests -x"
