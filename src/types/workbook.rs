@@ -79,23 +79,29 @@ impl SheetsEnum {
     ) -> Result<Option<Vec<calamine::Dimensions>>, Error> {
         match self {
             SheetsEnum::File(f) => match f {
-                Sheets::Xls(xls_f) => Ok(xls_f.worksheet_merge_cells(name)),
+                Sheets::Xls(xls_f) => xls_f
+                    .merge_cells_by_sheet_name(name)
+                    .map(Some)
+                    .map_err(CalamineCrateError::Xls)
+                    .map_err(Error::Calamine),
                 Sheets::Xlsx(xlsx_f) => xlsx_f
-                    .worksheet_merge_cells(name)
-                    .transpose()
+                    .merge_cells_by_sheet_name(name)
+                    .map(Some)
                     .map_err(CalamineCrateError::Xlsx)
-                    .map_err(Error::Calamine)
-                    .map(|inner| inner.or(Some(Vec::new()))),
+                    .map_err(Error::Calamine),
                 _ => Ok(None),
             },
             SheetsEnum::FileLike(f) => match f {
-                Sheets::Xls(xls_f) => Ok(xls_f.worksheet_merge_cells(name)),
+                Sheets::Xls(xls_f) => xls_f
+                    .merge_cells_by_sheet_name(name)
+                    .map(Some)
+                    .map_err(CalamineCrateError::Xls)
+                    .map_err(Error::Calamine),
                 Sheets::Xlsx(xlsx_f) => xlsx_f
-                    .worksheet_merge_cells(name)
-                    .transpose()
+                    .merge_cells_by_sheet_name(name)
+                    .map(Some)
                     .map_err(CalamineCrateError::Xlsx)
-                    .map_err(Error::Calamine)
-                    .map(|inner| inner.or(Some(Vec::new()))),
+                    .map_err(Error::Calamine),
                 _ => Ok(None),
             },
             SheetsEnum::None => Err(Error::WorkbookClosed),
