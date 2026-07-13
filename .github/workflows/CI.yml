@@ -1,4 +1,5 @@
 # some code from https://github.com/pydantic/pydantic-core/blob/d6e7890b36ef21cb28180a7f5b1479da2319012d/.github/workflows/ci.yml
+# and https://github.com/pydantic/pydantic/blob/f59e929c999e8b2efc7b12fd0bc1685c1a186be3/.github/workflows/ci.yml
 # MIT License, see author list by link
 
 name: CI
@@ -10,6 +11,9 @@ on:
     tags:
       - "**"
   pull_request: {}
+
+env:
+  UV_FROZEN: true
 
 permissions: {}
 
@@ -94,6 +98,43 @@ jobs:
 
       - run: pytest
 
+  test-pyemscripten:
+    name: test ${{ matrix.python-version }} PyEmscripten
+    needs: [build-pyemscripten]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.14"
+            pylock-suffix: "314"
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true # zizmor: ignore[cache-poisoning] -- Job does not produce release artifacts and does not have sensitive permissions
+
+      - name: get dist artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: python_calamine_pypi_files_pyemscripten_${{ matrix.python-version }}
+          path: dist
+
+      - run: |
+          uv sync --only-group pyodide-build
+          uv run pyodide venv .venv-pyodide
+          source .venv-pyodide/bin/activate
+          python -m pip install --upgrade pip>=26.1.1
+          python -m pip install -r .github/pyodide/pylock.${{ matrix.pylock-suffix }}.toml
+          python -m pip install python-calamine --no-index --no-deps --find-links dist
+          python -m pytest
+
   lint:
     permissions:
       contents: read
@@ -138,7 +179,7 @@ jobs:
   # https://github.com/marketplace/actions/alls-green#why used for branch protection checks
   check:
     if: always()
-    needs: [test, lint]
+    needs: [test, test-pyemscripten, lint]
     runs-on: ubuntu-latest
     steps:
       - name: Decide whether the needed jobs succeeded or failed
@@ -255,8 +296,60 @@ jobs:
           name: wheels-${{ matrix.os }}-${{ matrix.target }}-${{ matrix.manylinux || 'auto' }}
           path: dist
 
+  build-pyemscripten:
+    name: build PyEmscripten (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.14"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning]
+
+      - run: uv sync --only-group pyodide-build
+
+      - name: Get pyodide config
+        id: pyodide-config
+        run: |
+          echo "rust-toolchain=$(uv run pyodide config get rust_toolchain)" >> "$GITHUB_OUTPUT"
+          echo "emscripten-version=$(uv run pyodide config get emscripten_version)" >> "$GITHUB_OUTPUT"
+          echo "pyodide-abi-version=$(uv run pyodide config get pyodide_abi_version)" >> "$GITHUB_OUTPUT"
+          echo "rustflags=$(uv run pyodide config get rustflags)" >> "$GITHUB_OUTPUT"
+
+      - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 # v16
+        with:
+          version: ${{ steps.pyodide-config.outputs.emscripten-version }}
+          no-cache: ${{ startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        # Unclear how to avoid manually specifying this yet (https://github.com/PyO3/maturin/issues/3189):
+        env:
+          CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_RUSTFLAGS: ${{ steps.pyodide-config.outputs.rustflags }}
+          MATURIN_PYEMSCRIPTEN_PLATFORM_VERSION: ${{ steps.pyodide-config.outputs.pyodide-abi-version }}
+        with:
+          target: wasm32-unknown-emscripten
+          args: --release --out dist --interpreter ${{ matrix.python-version }}
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning]
+          rust-toolchain: ${{ steps.pyodide-config.outputs.rust-toolchain }}
+
+      - run: ls -lh dist/
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python_calamine_pypi_files_pyemscripten_${{ matrix.python-version }}
+          path: dist
+
   release:
-    needs: [build, check]
+    needs: [build, build-pyemscripten, check]
     if: success() && startsWith(github.ref, 'refs/tags/')
 
     runs-on: ubuntu-latest
@@ -280,7 +373,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1.14
 
   gh-release:
-    needs: [build, check]
+    needs: [build, build-pyemscripten, check]
     if: success() && startsWith(github.ref, 'refs/tags/')
 
     runs-on: ubuntu-latest
