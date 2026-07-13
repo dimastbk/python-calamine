@@ -24,6 +24,7 @@ dev = [
   "pytest~=9.0",
   "pandas[excel]>=2.2",
 ]
+pyodide-build = ["pyodide-build"]
 
 [project.urls]
 homepage = "https://github.com/dimastbk/python-calamine"
