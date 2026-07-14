@@ -1,14 +1,14 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use calamine::{Data, Range, Rows, SheetType, SheetVisible};
+use calamine::{Data, Dimensions, Range, Rows, SheetType, SheetVisible};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
 use crate::CellValue;
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq, eq_int, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetTypeEnum {
     /// WorkSheet
@@ -25,7 +25,7 @@ pub enum SheetTypeEnum {
 
 impl Display for SheetTypeEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SheetTypeEnum.{:?}", self)
+        write!(f, "SheetTypeEnum.{self:?}")
     }
 }
 
@@ -41,7 +41,7 @@ impl From<SheetType> for SheetTypeEnum {
     }
 }
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq, eq_int, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SheetVisibleEnum {
     /// Visible
@@ -54,7 +54,7 @@ pub enum SheetVisibleEnum {
 
 impl Display for SheetVisibleEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SheetVisibleEnum.{:?}", self)
+        write!(f, "SheetVisibleEnum.{self:?}")
     }
 }
 
@@ -68,7 +68,9 @@ impl From<SheetVisible> for SheetVisibleEnum {
     }
 }
 
-#[pyclass]
+type MergedCellRange = ((u32, u32), (u32, u32));
+
+#[pyclass(from_py_object)]
 #[derive(Clone, PartialEq)]
 pub struct SheetMetadata {
     #[pyo3(get)]
@@ -132,13 +134,19 @@ pub struct CalamineSheet {
     #[pyo3(get)]
     name: String,
     range: Arc<Range<Data>>,
+    merged_cell_ranges: Option<Vec<Dimensions>>,
 }
 
 impl CalamineSheet {
-    pub fn new(name: String, range: Range<Data>) -> Self {
+    pub fn new(
+        name: String,
+        range: Range<Data>,
+        merged_cell_ranges: Option<Vec<Dimensions>>,
+    ) -> Self {
         CalamineSheet {
             name,
             range: Arc::new(range),
+            merged_cell_ranges,
         }
     }
 }
@@ -201,16 +209,26 @@ impl CalamineSheet {
             Arc::clone(&slf.range)
         };
 
-        PyList::new(
-            slf.py(),
-            range.rows().take(nrows as usize).map(|row| {
-                PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)).unwrap()
-            }),
-        )
+        let py_list = PyList::empty(slf.py());
+
+        for row in range.rows().take(nrows as usize) {
+            let py_row = PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))?;
+
+            py_list.append(py_row)?;
+        }
+
+        Ok(py_list)
     }
 
     fn iter_rows(&self) -> CalamineCellIterator {
         CalamineCellIterator::from_range(Arc::clone(&self.range))
+    }
+
+    #[getter]
+    fn merged_cell_ranges(slf: PyRef<'_, Self>) -> Option<Vec<MergedCellRange>> {
+        slf.merged_cell_ranges
+            .as_ref()
+            .map(|r| r.iter().map(|d| (d.start, d.end)).collect())
     }
 }
 

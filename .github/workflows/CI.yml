@@ -13,33 +13,29 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }} ${{ matrix.disable-gil && 'free-threaded' || '' }}
+    name: test ${{ matrix.python-version }} pandas ${{ matrix.pandas-version }}
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
+          - "3.13"
+          - "3.14"
         pandas-version:
-          - "2.1.*"
           - "2.2.*"
+          - "2.3.*"
         include:
-          - python-version: "3.8"
-            pandas-version: "none"
           # https://github.com/pandas-dev/pandas/issues/42509
-          - python-version: "pypy3.9"
+          - python-version: "pypy3.11"
             pandas-version: "none"
-          # https://github.com/pandas-dev/pandas/issues/42509
-          - python-version: "pypy3.10"
-            pandas-version: "none"
-          - python-version: "3.13"
-            pandas-version: "2.2.*"
           # https://github.com/pandas-dev/pandas/issues/60016
-          - python-version: "3.13"
+          - python-version: "3.13t"
             pandas-version: "none"
-            disable-gil: true
+          # https://github.com/pandas-dev/pandas/issues/60016
+          - python-version: "3.14t"
+            pandas-version: "none"
 
     runs-on: ubuntu-latest
 
@@ -47,7 +43,7 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: install rust stable
         uses: dtolnay/rust-toolchain@master
@@ -61,29 +57,22 @@ jobs:
           key: v3
 
       - name: set up python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         if: "${{ !matrix.disable-gil }}"
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
 
-      - name: set up python (free-threaded)
-        uses: deadsnakes/action@v3.2.0
-        if: "${{ matrix.disable-gil }}"
-        with:
-          python-version: ${{ matrix.python-version }}
-          nogil: ${{ matrix.disable-gil }}
-
       - id: cache-py
         name: cache python
-        uses: actions/cache@v4
-        if: "${{ !matrix.disable-gil }}"
+        uses: actions/cache@v5
         with:
           path: ${{ env.pythonLocation }}
           key: >
             py
             ${{ runner.os }}
-            ${{ env.pythonLocation }}
+            ${{ matrix.python-version }}
+            ${{ matrix.pandas-version }}
 
       - run: |
           if [ ${{ matrix.pandas-version }} == 'none' ]; then
@@ -105,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: install rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -115,11 +104,11 @@ jobs:
       - name: cache rust
         uses: Swatinem/rust-cache@v2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-py
         name: cache python
         with:
@@ -128,7 +117,7 @@ jobs:
             py
             ${{ env.pythonLocation }}
 
-      - run: pip install pre-commit
+      - run: pip install pre-commit mypy
         if: steps.cache-py.outputs.cache-hit != 'true'
 
       - run: pip install .
@@ -150,74 +139,87 @@ jobs:
           jobs: ${{ toJSON(needs) }}
 
   build:
-    name: build on ${{ matrix.platform || matrix.os }} (${{ matrix.target }} - ${{ matrix.manylinux || 'auto' }})
+    name: build on ${{ matrix.os }} (${{ matrix.target }} - ${{ matrix.interpreter || 'all' }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux == 'auto' && 'manylinux' || matrix.manylinux) || '' }})
     if: success()
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
-        target: [x86_64, aarch64]
+        os: [linux, macos, windows]
+        target: [undefined]
         manylinux: [auto]
         include:
-          - os: ubuntu
-            platform: linux
-          - os: windows
-            ls: dir
-          - os: windows
-            ls: dir
-            target: i686
-            python-architecture: x86
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-          - os: windows
-            ls: dir
-            target: aarch64
-            interpreter: 3.11 3.12 3.13
-          - os: ubuntu
-            platform: linux
-            target: i686
-          - os: ubuntu
-            platform: linux
-            target: aarch64
-          - os: ubuntu
-            platform: linux
-            target: armv7
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-            # musllinux
-          - os: ubuntu
-            platform: linux
+          # manylinux for various platforms
+          - os: linux
+            manylinux: auto
             target: x86_64
-            manylinux: musllinux_1_1
-          - os: ubuntu
-            platform: linux
+          - os: linux
+            manylinux: auto
             target: aarch64
-            manylinux: musllinux_1_1
-          - os: ubuntu
-            platform: linux
+          - os: linux
+            manylinux: auto
+            target: i686
+          - os: linux
+            manylinux: auto
+            target: armv7
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+          - os: linux
+            manylinux: auto
             target: ppc64le
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-          - os: ubuntu
-            platform: linux
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+          - os: linux
+            manylinux: auto
             target: s390x
-            interpreter: 3.8 3.9 3.10 3.11 3.12 3.13
-        exclude:
-          # Windows on arm64 only supports Python 3.11+
-          - os: windows
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+
+          # musllinux
+          - os: linux
+            manylinux: musllinux_1_1
+            target: x86_64
+          - os: linux
+            manylinux: musllinux_1_1
+            target: aarch64
+          - os: linux
+            manylinux: musllinux_1_1
+            target: armv7
+
+          # macos
+          - os: macos
+            target: x86_64
+          - os: macos
             target: aarch64
 
-    runs-on: ${{ matrix.os }}-latest
+          # windows
+          - os: windows
+            target: x86_64
+            interpreter: 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
+          - os: windows
+            target: i686
+            interpreter: 3.10 3.11 3.12 3.13 3.14
+          - os: windows
+            target: aarch64
+            runs-on: windows-11-arm
+            interpreter: 3.11 3.12 3.13 3.13t 3.14 3.14t
+
+        exclude:
+          # was just a dummy variable to set a default value for target
+          - target: undefined
+
+    runs-on: ${{ matrix.runs-on || format('{0}-latest', (matrix.os == 'linux' && 'ubuntu') || matrix.os) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: set up python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
-          architecture: ${{ matrix.python-architecture || 'x64' }}
+          python-version: "3.14"
+
+      - name: install rust stable
+        uses: dtolnay/rust-toolchain@stable
 
       - run: pip install -U twine
 
       - name: build sdist
-        if: ${{ matrix.os == 'ubuntu' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
+        if: ${{ matrix.os == 'linux' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
@@ -229,16 +231,16 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
-          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12 3.13 pypy3.9 pypy3.10' }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.10 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11' }}
           rust-toolchain: stable
 
-      - run: ${{ matrix.ls || 'ls -lh' }} dist/
+      - run: ${{ (matrix.os == 'windows' && 'dir') || 'ls -lh' }} dist/
 
       - run: twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: wheels-${{ matrix.platform || matrix.os }}-${{ matrix.target }}-${{ matrix.manylinux || 'auto' }}
+          name: wheels-${{ matrix.os }}-${{ matrix.target }}-${{ matrix.manylinux || 'auto' }}
           path: dist
 
   release:
@@ -256,7 +258,7 @@ jobs:
 
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: wheels-*
@@ -264,3 +266,27 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  gh-release:
+    needs: [build, check]
+    if: success() && startsWith(github.ref, 'refs/tags/')
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: wheels-*
+          merge-multiple: true
+
+      - name: Upload to GitHub
+        uses: softprops/action-gh-release@v3.0.0
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*
