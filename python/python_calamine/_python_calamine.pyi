@@ -110,7 +110,13 @@ class CalamineSheet:
             | datetime.timedelta
         ]
     ]:
-        """Returning data from sheet as iterator of lists."""
+        """Return sheet data as an iterator of row lists.
+
+        Leading empty rows are included; leading empty columns are omitted.
+        For a non-empty sheet, each row starts at the zero-based column given
+        by the second item of `start`. Use `to_python(skip_empty_area=False)`
+        to retain both row and column offsets.
+        """
 
     @property
     def merged_cell_ranges(
