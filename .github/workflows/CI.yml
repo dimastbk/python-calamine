@@ -319,10 +319,16 @@ jobs:
       - name: Get pyodide config
         id: pyodide-config
         run: |
-          echo "rust-toolchain=$(uv run pyodide config get rust_toolchain)" >> "$GITHUB_OUTPUT"
-          echo "emscripten-version=$(uv run pyodide config get emscripten_version)" >> "$GITHUB_OUTPUT"
-          echo "pyodide-abi-version=$(uv run pyodide config get pyodide_abi_version)" >> "$GITHUB_OUTPUT"
-          echo "rustflags=$(uv run pyodide config get rustflags)" >> "$GITHUB_OUTPUT"
+          rust_toolchain=$(uv run pyodide config get rust_toolchain)
+          emscripten_version=$(uv run pyodide config get emscripten_version)
+          pyodide_abi_version=$(uv run pyodide config get pyodide_abi_version)
+          rustflags=$(uv run pyodide config get rustflags)
+          {
+            echo "rust-toolchain=$rust_toolchain"
+            echo "emscripten-version=$emscripten_version"
+            echo "pyodide-abi-version=$pyodide_abi_version"
+            echo "rustflags=$rustflags"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 # v16
         with:
