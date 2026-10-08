@@ -222,6 +222,24 @@ def test_xlsx_iter_rows():
     assert data == list(reader.get_sheet_by_index(0).iter_rows())
 
 
+@pytest.mark.parametrize("filename", ["base.xlsx", "base.xls", "base.xlsb", "base.ods"])
+def test_iter_rows_empty_sheet(filename):
+    reader = CalamineWorkbook.from_object(PATH / filename)
+    sheet = reader.get_sheet_by_index(1)
+
+    assert sheet.start is None
+    assert sheet.end is None
+    rows = sheet.iter_rows()
+
+    assert list(rows) == []
+    for _ in range(3):
+        with pytest.raises(StopIteration):
+            next(rows)
+
+    sentinel = object()
+    assert next(rows, sentinel) is sentinel
+
+
 def test_nrows():
     reader = CalamineWorkbook.from_object(PATH / "base.xlsx")
     sheet = reader.get_sheet_by_name("Sheet3")
