@@ -250,7 +250,7 @@ impl CalamineCellIterator {
         CalamineCellIterator {
             empty_row,
             position: 0,
-            start: range.start().unwrap(),
+            start: range.start().unwrap_or_default(),
             iter: unsafe {
                 std::mem::transmute::<
                     calamine::Rows<'_, calamine::Data>,
@@ -269,6 +269,10 @@ impl CalamineCellIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<Bound<'_, PyList>>> {
+        if slf.range.is_empty() {
+            return Ok(None);
+        }
+
         slf.position += 1;
         if slf.position > slf.start.0 {
             slf.iter
