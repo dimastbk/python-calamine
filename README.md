@@ -37,7 +37,7 @@ workbook.get_sheet_by_name("Sheet1").to_python()
 # ]
 ```
 
-By default, calamine skips empty rows/cols before data. For suppress this behaviour, set `skip_empty_area` to `False`.
+By default, `to_python()` skips empty rows and columns before the data. Set `skip_empty_area` to `False` to retain them.
 ```python
 from python_calamine import CalamineWorkbook
 
@@ -49,6 +49,8 @@ workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").t
 # ["1",  "2",  "3",  "4",  "5",  "6",  "7"],
 # ]
 ```
+
+`iter_rows()` includes empty rows before the data, but omits columns to the left of the used range. For example, if the first populated cells are C3 and D3, it yields two empty rows of width two before the data row. The second item of `sheet.start` gives the zero-based column offset for a non-empty sheet. Use `to_python(skip_empty_area=False)` to retain both row and column offsets.
 
 Pandas 2.2 and above have built-in support of python-calamine.
 

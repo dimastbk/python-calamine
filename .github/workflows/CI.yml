@@ -46,7 +46,7 @@ jobs:
           - python-version: "3.15"
             pandas-version: "2.3.*"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -103,7 +103,7 @@ jobs:
   test-pyemscripten:
     name: test ${{ matrix.python-version }} PyEmscripten
     needs: [build-pyemscripten]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -142,7 +142,7 @@ jobs:
   lint:
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -184,7 +184,7 @@ jobs:
   check:
     if: always()
     needs: [test, test-pyemscripten, lint]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
@@ -259,7 +259,7 @@ jobs:
           # was just a dummy variable to set a default value for target
           - target: undefined
 
-    runs-on: ${{ matrix.runs-on || format('{0}-latest', (matrix.os == 'linux' && 'ubuntu') || matrix.os) }}
+    runs-on: ${{ matrix.runs-on || (matrix.os == 'linux' && 'ubuntu-24.04') || format('{0}-latest', matrix.os) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -302,7 +302,7 @@ jobs:
 
   build-pyemscripten:
     name: build PyEmscripten (${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -363,7 +363,7 @@ jobs:
     needs: [build, build-pyemscripten, check]
     if: success() && startsWith(github.ref, 'refs/tags/')
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     environment:
       name: release
@@ -387,7 +387,7 @@ jobs:
     needs: [build, build-pyemscripten, check]
     if: success() && startsWith(github.ref, 'refs/tags/')
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: write
