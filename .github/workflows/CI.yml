@@ -26,11 +26,11 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
         pandas-version:
           - "2.3.*"
           - "3.0.*"
@@ -40,9 +40,11 @@ jobs:
             pandas-version: "none"
           - python-version: "3.14t"
             pandas-version: "3.0.*"
-        exclude:
-          - python-version: "3.10"
+          - python-version: "3.15t"
             pandas-version: "3.0.*"
+        exclude:
+          - python-version: "3.15"
+            pandas-version: "2.3.*"
 
     runs-on: ubuntu-latest
 
@@ -108,6 +110,8 @@ jobs:
         include:
           - python-version: "3.14"
             pylock-suffix: "314"
+          - python-version: "3.15"
+            pylock-suffix: "315"
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -212,15 +216,15 @@ jobs:
           - os: linux
             manylinux: auto
             target: armv7
-            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
+            interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: linux
             manylinux: auto
             target: ppc64le
-            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
+            interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: linux
             manylinux: auto
             target: s390x
-            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
+            interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
 
           # musllinux
           - os: linux
@@ -242,10 +246,10 @@ jobs:
           # windows
           - os: windows
             target: x86_64
-            interpreter: 3.10 3.11 3.12 3.13 3.14 3.14t
+            interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: windows
             target: i686
-            interpreter: 3.10 3.11 3.12 3.13 3.14
+            interpreter: 3.11 3.12 3.13 3.14 3.15
           - os: windows
             target: aarch64
             runs-on: windows-11-arm
@@ -284,7 +288,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux || 'auto' }}
-          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.10 3.11 3.12 3.13 3.14 3.14t pypy3.11' }}
+          args: --release --out dist --interpreter ${{ matrix.interpreter || '3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11' }}
           rust-toolchain: stable
 
       - run: ${{ (matrix.os == 'windows' && 'dir') || 'ls -lh' }} dist/
@@ -304,6 +308,7 @@ jobs:
       matrix:
         include:
           - python-version: "3.14"
+          - python-version: "3.15"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
