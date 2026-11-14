@@ -8,7 +8,7 @@ name = "python_calamine"
 crate-type = ["cdylib"]
 
 [dependencies]
-calamine = { version = "0.37.0", features = ["chrono"] }
+calamine = { version = "0.38.0", features = ["chrono"] }
 pyo3 = { version = "0.30.1", features = ["chrono"] }
 chrono = { version = "0.4.42", features = ["serde"] }
 pyo3-file = "0.18.0"
