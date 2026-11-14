@@ -10,7 +10,9 @@ use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3_file::PyFileLikeObject;
 
-use crate::{CalamineSheet, CalamineTable, Error, SheetMetadata, WorksheetNotFound};
+use crate::{
+    CalamineSheet, CalamineTable, Error, SheetMetadata, WorkbookProperties, WorksheetNotFound,
+};
 
 enum SheetsEnum {
     File(Sheets<BufReader<File>>),
@@ -63,6 +65,15 @@ impl SheetsEnum {
             SheetsEnum::FileLike(f) => f.sheet_names(),
             SheetsEnum::None => unreachable!(),
         }
+    }
+
+    fn workbook_properties(&mut self) -> Result<WorkbookProperties, Error> {
+        match self {
+            SheetsEnum::File(f) => f.workbook_properties().map_err(Error::Calamine),
+            SheetsEnum::FileLike(f) => f.workbook_properties().map_err(Error::Calamine),
+            SheetsEnum::None => Err(Error::WorkbookClosed),
+        }
+        .map(WorkbookProperties::from)
     }
 
     fn worksheet_range(&mut self, name: &str) -> Result<calamine::Range<calamine::Data>, Error> {
@@ -263,6 +274,11 @@ impl CalamineWorkbook {
             },
             _ => Err(Error::TablesNotSupported.into()),
         }
+    }
+
+    #[getter]
+    fn workbook_properties(&mut self, py: Python<'_>) -> PyResult<WorkbookProperties> {
+        py.detach(|| Ok(self.sheets.workbook_properties()?))
     }
 
     #[pyo3(name = "get_table_by_name")]

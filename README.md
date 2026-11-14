@@ -50,6 +50,19 @@ workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").t
 # ]
 ```
 
+Workbook document properties, such as the author, are available for xlsx, xlsb, xls and ods files.
+```python
+from python_calamine import CalamineWorkbook
+
+properties = CalamineWorkbook.from_path("file.xlsx").workbook_properties
+properties.creator
+# "John"
+properties.last_modified_by
+# "Jane"
+properties.custom_properties
+# {"Department": "Finance"}
+```
+
 Pandas 2.2 and above have built-in support of python-calamine.
 
 Also, you can find additional examples in [tests](https://github.com/dimastbk/python-calamine/blob/master/tests/test_base.py).

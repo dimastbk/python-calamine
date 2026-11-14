@@ -175,6 +175,55 @@ class CalamineTable:
         """Returning data from table as list of lists."""
 
 @typing.final
+class WorkbookProperties:
+    """Document properties of a workbook.
+
+    Fields that the file doesn't store are `None`. Dates are returned as the text
+    stored in the file (usually ISO 8601), not parsed into `datetime`.
+    """
+
+    creator: str | None
+    """Creator (author) of the workbook."""
+    last_modified_by: str | None
+    """User who last saved the workbook."""
+    created: str | None
+    """Creation date."""
+    modified: str | None
+    """Last modification date."""
+    title: str | None
+    """Title."""
+    subject: str | None
+    """Subject."""
+    description: str | None
+    """Description or comments."""
+    keywords: str | None
+    """Keywords."""
+    category: str | None
+    """Category."""
+    content_status: str | None
+    """Content status."""
+    revision: str | None
+    """Revision number."""
+    version: str | None
+    """Version."""
+    application: str | None
+    """Name of the application that created the workbook."""
+    app_version: str | None
+    """Version of the application that created the workbook."""
+    company: str | None
+    """Company."""
+    template: str | None
+    """Template the workbook is based on."""
+    manager: str | None
+    """Manager."""
+    custom_properties: dict[str, str]
+    """Custom document properties, keyed by name.
+
+    Values are returned as the text stored in the file, for example `"4"`,
+    `"true"` or `"2020-08-24T20:19:22Z"`.
+    """
+
+@typing.final
 class CalamineWorkbook:
     path: str | None
     """Path to file. `None` if bytes was loaded."""
@@ -184,6 +233,17 @@ class CalamineWorkbook:
     """All sheets metadata of this workbook, in workbook order."""
     table_names: list[str] | None
     """All table names of this workbook."""
+    @property
+    def workbook_properties(self) -> WorkbookProperties:
+        """Document properties of this workbook, such as the creator and title.
+
+        Supported for xlsx, xlsb, xls and ods. The properties are read from the file
+        each time this attribute is accessed.
+
+        Raises:
+            WorkbookClosed: If workbook already closed.
+        """
+
     @classmethod
     def from_object(
         cls, path_or_filelike: str | os.PathLike | ReadBuffer, load_tables: bool = False
@@ -309,6 +369,7 @@ __all__ = [
     "TablesNotLoaded",
     "TablesNotSupported",
     "WorkbookClosed",
+    "WorkbookProperties",
     "WorksheetNotFound",
     "XmlError",
     "ZipError",
