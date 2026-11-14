@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 
@@ -15,8 +16,8 @@ def test_xlsx_workbook_properties():
     assert isinstance(props, WorkbookProperties)
     assert props.creator == "Test Creator"
     assert props.last_modified_by == "Last Modifier"
-    assert props.created == "2024-01-15T08:30:00Z"
-    assert props.modified == "2024-06-20T14:22:00Z"
+    assert props.created == datetime(2024, 1, 15, 8, 30, tzinfo=timezone.utc)
+    assert props.modified == datetime(2024, 6, 20, 14, 22, tzinfo=timezone.utc)
     assert props.title == "Workbook Title"
     assert props.subject == "Test Subject"
     assert props.description == "A test workbook"
@@ -40,8 +41,8 @@ def test_ods_workbook_properties():
 
     assert props.creator == "Test Creator"
     assert props.last_modified_by == "Last Modifier"
-    assert props.created == "2024-01-15T08:30:00"
-    assert props.modified == "2024-06-20T14:22:00.123456789"
+    assert props.created == datetime(2024, 1, 15, 8, 30)
+    assert props.modified == datetime(2024, 6, 20, 14, 22, 0, 123456)
     assert props.title == "Workbook Title"
     assert props.subject == "Test Subject"
     assert props.description == "A test workbook"
@@ -62,22 +63,22 @@ def test_ods_workbook_properties():
     [
         (
             "any_sheets.xlsx",
-            "2023-07-28T16:31:17Z",
+            datetime(2023, 7, 28, 16, 31, 17, tzinfo=timezone.utc),
             "Microsoft Excel",
         ),
         (
             "any_sheets.xlsb",
-            "2023-07-28T16:31:46Z",
+            datetime(2023, 7, 28, 16, 31, 46, tzinfo=timezone.utc),
             "Microsoft Excel",
         ),
         (
             "any_sheets.xls",
-            "2023-07-28T16:31:33Z",
+            datetime(2023, 7, 28, 16, 31, 33, tzinfo=timezone.utc),
             "Microsoft Excel",
         ),
         (
             "any_sheets.ods",
-            "2023-07-28T16:32:08Z",
+            datetime(2023, 7, 28, 16, 32, 8, tzinfo=timezone.utc),
             "MicrosoftOffice/16.0 MicrosoftExcel/CalculationVersion-14420",
         ),
     ],
@@ -87,7 +88,7 @@ def test_workbook_properties_all_formats(file, modified, application):
 
     assert props.creator == "Алена"
     assert props.last_modified_by == "Алена"
-    assert props.created == "2023-07-28T16:28:06Z"
+    assert props.created == datetime(2023, 7, 28, 16, 28, 6, tzinfo=timezone.utc)
     assert props.modified == modified
     assert props.application == application
     assert props.title is None
@@ -111,7 +112,7 @@ def test_workbook_properties_missing_fields():
 
     assert props.creator is None
     assert props.last_modified_by is None
-    assert props.created == "2021-09-17T15:27:18Z"
+    assert props.created == datetime(2021, 9, 17, 15, 27, 18, tzinfo=timezone.utc)
     assert props.app_version == "16.0300"
 
 
@@ -119,8 +120,10 @@ def test_workbook_properties_repr():
     props = CalamineWorkbook.from_path(PATH / "base.xls").workbook_properties
 
     assert repr(props) == (
-        "WorkbookProperties(created='2021-09-17T05:27:18Z', "
-        "modified='2025-04-13T18:43:16Z', revision='18', app_version='16.0000', "
+        "WorkbookProperties("
+        "created=datetime.datetime(2021, 9, 17, 5, 27, 18, tzinfo=datetime.timezone.utc), "
+        "modified=datetime.datetime(2025, 4, 13, 18, 43, 16, tzinfo=datetime.timezone.utc), "
+        "revision='18', app_version='16.0000', "
         "custom_properties={'AppVersion': '15.0000'})"
     )
 

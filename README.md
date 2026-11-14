@@ -59,6 +59,8 @@ properties.creator
 # "John"
 properties.last_modified_by
 # "Jane"
+properties.modified
+# datetime.datetime(2024, 6, 20, 14, 22, tzinfo=datetime.timezone.utc)
 properties.custom_properties
 # {"Department": "Finance"}
 ```

@@ -1,6 +1,28 @@
 use std::collections::BTreeMap;
 
+use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use pyo3::prelude::*;
+
+/// A document property date, with a UTC offset if the file stores one.
+#[derive(Clone, Debug, PartialEq, IntoPyObject)]
+enum PropertyDate {
+    Aware(DateTime<FixedOffset>),
+    Naive(NaiveDateTime),
+}
+
+impl PropertyDate {
+    /// Parse a date such as "2024-01-15T08:30:00Z" (xlsx, xlsb, xls) or
+    /// "2024-06-20T14:22:00.123456789" (ods). Other formats return `None`.
+    fn parse(value: &str) -> Option<Self> {
+        let value = value.trim();
+        if let Ok(date) = DateTime::parse_from_rfc3339(value) {
+            return Some(PropertyDate::Aware(date));
+        }
+        NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f")
+            .ok()
+            .map(PropertyDate::Naive)
+    }
+}
 
 /// Document properties of a workbook, such as the creator, title and company.
 #[pyclass(eq, from_py_object)]
@@ -11,9 +33,9 @@ pub struct WorkbookProperties {
     #[pyo3(get)]
     last_modified_by: Option<String>,
     #[pyo3(get)]
-    created: Option<String>,
+    created: Option<PropertyDate>,
     #[pyo3(get)]
-    modified: Option<String>,
+    modified: Option<PropertyDate>,
     #[pyo3(get)]
     title: Option<String>,
     #[pyo3(get)]
@@ -48,28 +70,34 @@ pub struct WorkbookProperties {
 impl WorkbookProperties {
     fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
         let fields = [
-            ("creator", &self.creator),
-            ("last_modified_by", &self.last_modified_by),
-            ("created", &self.created),
-            ("modified", &self.modified),
-            ("title", &self.title),
-            ("subject", &self.subject),
-            ("description", &self.description),
-            ("keywords", &self.keywords),
-            ("category", &self.category),
-            ("content_status", &self.content_status),
-            ("revision", &self.revision),
-            ("version", &self.version),
-            ("application", &self.application),
-            ("app_version", &self.app_version),
-            ("company", &self.company),
-            ("template", &self.template),
-            ("manager", &self.manager),
+            ("creator", self.creator.clone().into_pyobject(py)?),
+            (
+                "last_modified_by",
+                self.last_modified_by.clone().into_pyobject(py)?,
+            ),
+            ("created", self.created.clone().into_pyobject(py)?),
+            ("modified", self.modified.clone().into_pyobject(py)?),
+            ("title", self.title.clone().into_pyobject(py)?),
+            ("subject", self.subject.clone().into_pyobject(py)?),
+            ("description", self.description.clone().into_pyobject(py)?),
+            ("keywords", self.keywords.clone().into_pyobject(py)?),
+            ("category", self.category.clone().into_pyobject(py)?),
+            (
+                "content_status",
+                self.content_status.clone().into_pyobject(py)?,
+            ),
+            ("revision", self.revision.clone().into_pyobject(py)?),
+            ("version", self.version.clone().into_pyobject(py)?),
+            ("application", self.application.clone().into_pyobject(py)?),
+            ("app_version", self.app_version.clone().into_pyobject(py)?),
+            ("company", self.company.clone().into_pyobject(py)?),
+            ("template", self.template.clone().into_pyobject(py)?),
+            ("manager", self.manager.clone().into_pyobject(py)?),
         ];
         let mut parts = Vec::new();
         for (name, value) in fields {
-            if let Some(value) = value {
-                parts.push(format!("{name}={}", value.into_pyobject(py)?.repr()?));
+            if !value.is_none() {
+                parts.push(format!("{name}={}", value.repr()?));
             }
         }
         if !self.custom_properties.is_empty() {
@@ -85,8 +113,8 @@ impl From<calamine::WorkbookProperties> for WorkbookProperties {
         WorkbookProperties {
             creator: props.creator,
             last_modified_by: props.last_modified_by,
-            created: props.created,
-            modified: props.modified,
+            created: props.created.as_deref().and_then(PropertyDate::parse),
+            modified: props.modified.as_deref().and_then(PropertyDate::parse),
             title: props.title,
             subject: props.subject,
             description: props.description,

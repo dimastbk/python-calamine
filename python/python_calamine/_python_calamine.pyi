@@ -178,17 +178,19 @@ class CalamineTable:
 class WorkbookProperties:
     """Document properties of a workbook.
 
-    Fields that the file doesn't store are `None`. Dates are returned as the text
-    stored in the file (usually ISO 8601), not parsed into `datetime`.
+    Fields that the file doesn't store are `None`. `created` and `modified` are
+    timezone-aware when the file stores a UTC offset (xlsx, xlsb and xls always do)
+    and naive otherwise, for example in ods files saved by LibreOffice. A date the
+    file stores in another format is `None`.
     """
 
     creator: str | None
     """Creator (author) of the workbook."""
     last_modified_by: str | None
     """User who last saved the workbook."""
-    created: str | None
+    created: datetime.datetime | None
     """Creation date."""
-    modified: str | None
+    modified: datetime.datetime | None
     """Last modification date."""
     title: str | None
     """Title."""
