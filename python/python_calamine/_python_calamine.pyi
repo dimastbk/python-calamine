@@ -237,8 +237,8 @@ class CalamineWorkbook:
     def workbook_properties(self) -> WorkbookProperties:
         """Document properties of this workbook, such as the creator and title.
 
-        Supported for xlsx, xlsb, xls and ods. The properties are read from the file
-        each time this attribute is accessed.
+        Supported for xlsx, xlsb, xls and ods. The properties are read when this
+        attribute is first accessed, not when the workbook is opened.
 
         Raises:
             WorkbookClosed: If workbook already closed.
