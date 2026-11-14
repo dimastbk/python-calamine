@@ -114,6 +114,11 @@ where
                     .map(|s| CellValue::String(s.to_owned()))
                     .unwrap_or(CellValue::Empty),
             )
+        } else if value.is_error() {
+            value
+                .get_error()
+                .map(|error| CellValue::String(error.to_string()))
+                .unwrap_or(CellValue::Empty)
         } else if value.is_bool() {
             value
                 .get_bool()
