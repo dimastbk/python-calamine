@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use chrono::{DateTime, Datelike, FixedOffset, NaiveDateTime};
 use pyo3::prelude::*;
 
 /// A document property date, with a UTC offset if the file stores one.
@@ -12,15 +12,21 @@ enum PropertyDate {
 
 impl PropertyDate {
     /// Parse a date such as "2024-01-15T08:30:00Z" (xlsx, xlsb, xls) or
-    /// "2024-06-20T14:22:00.123456789" (ods). Other formats return `None`.
+    /// "2024-06-20T14:22:00.123456789" (ods). Other formats, and years that
+    /// Python's `datetime` can't represent, return `None`.
     fn parse(value: &str) -> Option<Self> {
         let value = value.trim();
-        if let Ok(date) = DateTime::parse_from_rfc3339(value) {
-            return Some(PropertyDate::Aware(date));
-        }
-        NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f")
-            .ok()
-            .map(PropertyDate::Naive)
+        let date = match DateTime::parse_from_rfc3339(value) {
+            Ok(date) => PropertyDate::Aware(date),
+            Err(_) => NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.f")
+                .ok()
+                .map(PropertyDate::Naive)?,
+        };
+        let year = match &date {
+            PropertyDate::Aware(date) => date.year(),
+            PropertyDate::Naive(date) => date.year(),
+        };
+        (1..=9999).contains(&year).then_some(date)
     }
 }
 

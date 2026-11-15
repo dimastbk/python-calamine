@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
+from zipfile import ZipFile
 
 import pytest
 from python_calamine import CalamineWorkbook, WorkbookClosed, WorkbookProperties
@@ -114,6 +115,25 @@ def test_workbook_properties_missing_fields():
     assert props.last_modified_by is None
     assert props.created == datetime(2021, 9, 17, 15, 27, 18, tzinfo=timezone.utc)
     assert props.app_version == "16.0300"
+
+
+def test_workbook_properties_unrepresentable_dates():
+    # Python's datetime has no year 0, so these dates are None.
+    buffer = BytesIO()
+    with ZipFile(PATH / "base.xlsx") as src, ZipFile(buffer, "w") as dst:
+        for item in src.infolist():
+            data = src.read(item)
+            if item.filename == "docProps/core.xml":
+                data = data.replace(b"2021-09-17T15:27:18Z", b"0000-01-01T00:00:00Z")
+                data = data.replace(b"2025-04-13T17:29:27Z", b"0000-01-01T00:00:00")
+            dst.writestr(item, data)
+    buffer.seek(0)
+
+    props = CalamineWorkbook.from_filelike(buffer).workbook_properties
+
+    assert props.created is None
+    assert props.modified is None
+    assert repr(props) == "WorkbookProperties(app_version='16.0300')"
 
 
 def test_workbook_properties_repr():
