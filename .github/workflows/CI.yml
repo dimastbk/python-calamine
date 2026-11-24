@@ -232,6 +232,10 @@ jobs:
             target: s390x-unknown-linux-gnu
             arch: s390x
             interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
+          - os: linux
+            manylinux: auto
+            target: riscv64gc-unknown-linux-gnu
+            arch: riscv64
 
           # musllinux
           - os: linux
@@ -246,6 +250,10 @@ jobs:
             manylinux: musllinux_1_2
             target: armv7-unknown-linux-musleabihf
             arch: armv7
+          - os: linux
+            manylinux: musllinux_1_2
+            target: riscv64gc-unknown-linux-musl
+            arch: riscv64
 
           # macos
           - os: macos
