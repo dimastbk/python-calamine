@@ -192,7 +192,7 @@ jobs:
           jobs: ${{ toJSON(needs) }}
 
   build:
-    name: build on ${{ matrix.os }} (${{ matrix.target }} - ${{ matrix.interpreter || 'all' }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux == 'auto' && 'manylinux' || matrix.manylinux) || '' }})
+    name: build on ${{ matrix.os }} (${{ matrix.arch }} - ${{ matrix.interpreter || 'all' }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux == 'auto' && 'manylinux' || matrix.manylinux) || '' }})
     permissions:
       contents: read
     if: success()
@@ -201,63 +201,87 @@ jobs:
       matrix:
         os: [linux, macos, windows]
         target: [undefined]
+        arch: [undefined]
         manylinux: [auto]
         include:
           # manylinux for various platforms
           - os: linux
             manylinux: auto
-            target: x86_64
+            target: x86_64-unknown-linux-gnu
+            arch: x86_64
           - os: linux
             manylinux: auto
-            target: aarch64
+            target: aarch64-unknown-linux-gnu
+            arch: aarch64
           - os: linux
             manylinux: auto
-            target: i686
+            target: i686-unknown-linux-gnu
+            arch: x86
           - os: linux
             manylinux: auto
-            target: armv7
+            target: armv7-unknown-linux-gnueabihf
+            arch: armv7
             interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: linux
             manylinux: auto
-            target: ppc64le
+            target: powerpc64le-unknown-linux-gnu
+            arch: ppc64le
             interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: linux
             manylinux: auto
-            target: s390x
+            target: s390x-unknown-linux-gnu
+            arch: s390x
             interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
+          - os: linux
+            manylinux: auto
+            target: riscv64gc-unknown-linux-gnu
+            arch: riscv64
 
           # musllinux
           - os: linux
-            manylinux: musllinux_1_1
-            target: x86_64
+            manylinux: musllinux_1_2
+            target: x86_64-unknown-linux-musl
+            arch: x86_64
           - os: linux
-            manylinux: musllinux_1_1
-            target: aarch64
+            manylinux: musllinux_1_2
+            target: aarch64-unknown-linux-musl
+            arch: aarch64
           - os: linux
-            manylinux: musllinux_1_1
-            target: armv7
+            manylinux: musllinux_1_2
+            target: armv7-unknown-linux-musleabihf
+            arch: armv7
+          - os: linux
+            manylinux: musllinux_1_2
+            target: riscv64gc-unknown-linux-musl
+            arch: riscv64
 
           # macos
           - os: macos
             target: x86_64
+            arch: x86_64
           - os: macos
             target: aarch64
+            arch: aarch64
 
           # windows
           - os: windows
             target: x86_64
+            arch: x86_64
             interpreter: 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t
           - os: windows
             target: i686
+            arch: x86
             interpreter: 3.11 3.12 3.13 3.14 3.15
           - os: windows
             target: aarch64
+            arch: aarch64
             runs-on: windows-11-arm
             interpreter: 3.11 3.12 3.13 3.14 3.14t
 
         exclude:
           # was just a dummy variable to set a default value for target
           - target: undefined
+          - arch: undefined
 
     runs-on: ${{ matrix.runs-on || format('{0}-latest', (matrix.os == 'linux' && 'ubuntu') || matrix.os) }}
     steps:
@@ -276,7 +300,7 @@ jobs:
       - run: pip install -U twine
 
       - name: build sdist
-        if: ${{ matrix.os == 'linux' && matrix.target == 'x86_64' && matrix.manylinux == 'auto' }}
+        if: ${{ matrix.os == 'linux' && matrix.arch == 'x86_64' && matrix.manylinux == 'auto' }}
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           command: sdist
@@ -297,7 +321,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: python_calamine_pypi_files_${{ matrix.os }}_${{ matrix.target }}_${{ matrix.manylinux || 'auto' }}
+          name: python_calamine_pypi_files_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.manylinux || 'auto' }}
           path: dist
 
   build-pyemscripten:
