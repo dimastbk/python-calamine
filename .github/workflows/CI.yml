@@ -217,6 +217,8 @@ jobs:
             manylinux: auto
             target: i686-unknown-linux-gnu
             arch: x86
+            # https://github.com/PyO3/maturin-action/issues/484
+            runs-on: ubuntu-24.04
           - os: linux
             manylinux: auto
             target: armv7-unknown-linux-gnueabihf
