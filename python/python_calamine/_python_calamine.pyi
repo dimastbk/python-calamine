@@ -7,6 +7,17 @@ import os
 import types
 import typing
 
+_CellValue = (
+    int
+    | float
+    | str
+    | bool
+    | datetime.time
+    | datetime.date
+    | datetime.datetime
+    | datetime.timedelta
+)
+
 @typing.type_check_only
 class ReadBuffer(typing.Protocol):
     def seek(self, __offset: int, __whence: int = ...) -> int: ...
@@ -74,44 +85,46 @@ class CalamineSheet:
     def end(self) -> tuple[int, int] | None:
         """Get bottom right cell position of a sheet data."""
 
+    @typing.overload
     def to_python(
-        self, skip_empty_area: bool = True, nrows: int | None = None
-    ) -> list[
-        list[
-            int
-            | float
-            | str
-            | bool
-            | datetime.time
-            | datetime.date
-            | datetime.datetime
-            | datetime.timedelta
-        ]
-    ]:
-        """Returning data from sheet as list of lists.
-
-        Args:
-            skip_empty_area (bool):
-                By default, calamine skips empty rows/cols before data.
-                For suppress this behaviour, set `skip_empty_area` to `False`.
-        """
-
-    def iter_rows(
         self,
-    ) -> typing.Iterator[
-        list[
-            int
-            | float
-            | str
-            | bool
-            | datetime.time
-            | datetime.date
-            | datetime.datetime
-            | datetime.timedelta
-        ]
-    ]:
-        """Returning data from sheet as iterator of lists."""
+        skip_empty_area: bool = True,
+        nrows: int | None = None,
+        *,
+        empty_as_none: typing.Literal[False] = False,
+    ) -> list[list[_CellValue]]:
+        """Return sheet rows, optionally including leading empty rows and columns."""
 
+    @typing.overload
+    def to_python(
+        self,
+        skip_empty_area: bool = True,
+        nrows: int | None = None,
+        *,
+        empty_as_none: typing.Literal[True],
+    ) -> list[list[_CellValue | None]]: ...
+    @typing.overload
+    def to_python(
+        self,
+        skip_empty_area: bool = True,
+        nrows: int | None = None,
+        *,
+        empty_as_none: bool,
+    ) -> list[list[_CellValue | None]]: ...
+    @typing.overload
+    def iter_rows(
+        self, *, empty_as_none: typing.Literal[False] = False
+    ) -> typing.Iterator[list[_CellValue]]:
+        """Return an iterator over sheet rows."""
+
+    @typing.overload
+    def iter_rows(
+        self, *, empty_as_none: typing.Literal[True]
+    ) -> typing.Iterator[list[_CellValue | None]]: ...
+    @typing.overload
+    def iter_rows(
+        self, *, empty_as_none: bool
+    ) -> typing.Iterator[list[_CellValue | None]]: ...
     @property
     def merged_cell_ranges(
         self,

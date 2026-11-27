@@ -50,6 +50,19 @@ workbook = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1").t
 # ]
 ```
 
+By default, empty cells are returned as `""`. Set `empty_as_none=True` on
+`to_python()` or `iter_rows()` to return `None` for empty cells instead; actual
+empty strings remain `""` when the underlying format preserves them. This also
+applies to leading empty rows or columns included in the result. Error values
+retain their existing conversion.
+
+```python
+sheet = CalamineWorkbook.from_path("file.xlsx").get_sheet_by_name("Sheet1")
+rows = sheet.to_python(empty_as_none=True)
+for row in sheet.iter_rows(empty_as_none=True):
+    print(row)
+```
+
 Workbook document properties, such as the author, are available for xlsx, xlsb, xls and ods files.
 ```python
 from python_calamine import CalamineWorkbook

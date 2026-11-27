@@ -70,6 +70,14 @@ impl From<SheetVisible> for SheetVisibleEnum {
 
 type MergedCellRange = ((u32, u32), (u32, u32));
 
+fn cell_value(value: &Data, empty_as_none: bool) -> Option<CellValue> {
+    if empty_as_none && matches!(value, Data::Empty) {
+        None
+    } else {
+        Some(value.into())
+    }
+}
+
 #[pyclass(from_py_object)]
 #[derive(Clone, PartialEq)]
 pub struct SheetMetadata {
@@ -187,11 +195,12 @@ impl CalamineSheet {
         self.range.end()
     }
 
-    #[pyo3(signature = (skip_empty_area=true, nrows=None))]
+    #[pyo3(signature = (skip_empty_area=true, nrows=None, *, empty_as_none=false))]
     fn to_python(
         slf: PyRef<'_, Self>,
         skip_empty_area: bool,
         nrows: Option<u32>,
+        empty_as_none: bool,
     ) -> PyResult<Bound<'_, PyList>> {
         let nrows = match nrows {
             Some(nrows) => nrows,
@@ -212,7 +221,10 @@ impl CalamineSheet {
         let py_list = PyList::empty(slf.py());
 
         for row in range.rows().take(nrows as usize) {
-            let py_row = PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into))?;
+            let py_row = PyList::new(
+                slf.py(),
+                row.iter().map(|cell| cell_value(cell, empty_as_none)),
+            )?;
 
             py_list.append(py_row)?;
         }
@@ -220,8 +232,9 @@ impl CalamineSheet {
         Ok(py_list)
     }
 
-    fn iter_rows(&self) -> CalamineCellIterator {
-        CalamineCellIterator::from_range(Arc::clone(&self.range))
+    #[pyo3(signature = (*, empty_as_none=false))]
+    fn iter_rows(&self, empty_as_none: bool) -> CalamineCellIterator {
+        CalamineCellIterator::from_range(Arc::clone(&self.range), empty_as_none)
     }
 
     #[getter]
@@ -236,19 +249,21 @@ impl CalamineSheet {
 pub struct CalamineCellIterator {
     position: u32,
     start: (u32, u32),
-    empty_row: Vec<CellValue>,
+    empty_row: Vec<Option<CellValue>>,
+    empty_as_none: bool,
     iter: Rows<'static, Data>,
     #[allow(dead_code)]
     range: Arc<Range<Data>>,
 }
 
 impl CalamineCellIterator {
-    fn from_range(range: Arc<Range<Data>>) -> CalamineCellIterator {
+    fn from_range(range: Arc<Range<Data>>, empty_as_none: bool) -> CalamineCellIterator {
         let empty_row = (0..range.width())
-            .map(|_| CellValue::String("".to_string()))
+            .map(|_| cell_value(&Data::Empty, empty_as_none))
             .collect();
         CalamineCellIterator {
             empty_row,
+            empty_as_none,
             position: 0,
             start: range.start().unwrap_or_default(),
             iter: unsafe {
@@ -277,7 +292,12 @@ impl CalamineCellIterator {
         if slf.position > slf.start.0 {
             slf.iter
                 .next()
-                .map(|row| PyList::new(slf.py(), row.iter().map(<&Data as Into<CellValue>>::into)))
+                .map(|row| {
+                    PyList::new(
+                        slf.py(),
+                        row.iter().map(|cell| cell_value(cell, slf.empty_as_none)),
+                    )
+                })
                 .transpose()
         } else {
             Some(PyList::new(slf.py(), slf.empty_row.clone())).transpose()
